@@ -5,11 +5,11 @@ This is the Typescript implementation of the [Ligo Vocabulary](https://github.co
 ## Install
 
 ```bash
-npm i ligo-vocab
+npm i @js-ligo/vocab
 ```
 
 ```bash
-yarn add ligo-vocab
+yarn add @js-ligo/vocab
 ```
 
 ## Usage
