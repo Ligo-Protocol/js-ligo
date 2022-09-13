@@ -1,4 +1,4 @@
-# ts-ligo-vocab
+# Ligo Vocab
 
 This is the Typescript implementation of the [Ligo Vocabulary](https://github.com/Ligo-Protocol/ligo-vocab).
 
