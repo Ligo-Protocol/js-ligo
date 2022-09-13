@@ -1,5 +1,5 @@
 {
-  "name": "@ligo/agreements",
+  "name": "@js-ligo/agreements",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -23,6 +23,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "ligo-vocab": "workspace:^0.1.0"
+    "@js-ligo/vocab": "workspace:^0.1.0"
   }
 }

@@ -26,9 +26,9 @@ importers:
 
   packages/agreements:
     specifiers:
-      ligo-vocab: workspace:^0.1.0
+      '@js-ligo/vocab': workspace:^0.1.0
     dependencies:
-      ligo-vocab: link:../vocab
+      '@js-ligo/vocab': link:../vocab
 
   packages/vocab:
     specifiers:
