@@ -16,7 +16,9 @@
     "build:js": "swc src -d ./dist --config-file ../../.swcrc",
     "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
     "build": "pnpm build:clean && pnpm build:types && pnpm build:js",
-    "lint": "eslint src --fix",
+    "lint": "eslint src test --fix",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "test:ci": "pnpm run test --ci --coverage",
     "prepare": "pnpm build"
   },
   "keywords": [],
@@ -25,7 +27,28 @@
   "dependencies": {
     "@js-ligo/vocab": "workspace:^0.1.0",
     "did-jwt": "^6.8.0",
-    "dids": "^3.3.0",
+    "dids": "^3.2.0",
     "uint8arrays": "^3.1.0"
+  },
+  "devDependencies": {
+    "@stablelib/random": "^1.0.2",
+    "key-did-provider-ed25519": "^2.0.0",
+    "key-did-resolver": "^2.0.5"
+  },
+  "jest": {
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "@swc/jest",
+        {
+          "root": "../.."
+        }
+      ]
+    }
   }
 }
