@@ -1,1 +1,1 @@
-import { LigoAgreement } from "@js-ligo/vocab";
+export * from "./signer";
