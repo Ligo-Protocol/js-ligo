@@ -42,6 +42,7 @@ importers:
     specifiers:
       '@js-ligo/vocab': workspace:^0.1.0
       '@stablelib/random': ^1.0.2
+      dag-jose-utils: ^2.0.0
       did-jwt: ^6.8.0
       dids: ^3.2.0
       key-did-provider-ed25519: ^2.0.0
@@ -49,6 +50,7 @@ importers:
       uint8arrays: ^3.1.0
     dependencies:
       '@js-ligo/vocab': link:../vocab
+      dag-jose-utils: 2.0.0
       did-jwt: 6.8.0
       dids: 3.3.0
       uint8arrays: 3.1.0

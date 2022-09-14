@@ -19,4 +19,22 @@ export class AgreementSigner {
       signatures: [...signedAgreement.signatures, ...jws.signatures],
     };
   }
+
+  async verifyAgreement(signedAgreement: DagJWS): Promise<LigoAgreement> {
+    const agreements: LigoAgreement[] = await Promise.all(
+      signedAgreement.signatures.map(async (sig) => {
+        const jws: DagJWS = {
+          ...signedAgreement,
+          signatures: [sig],
+        };
+        const result = await this.#did.verifyJWS(jws);
+        return result.payload as LigoAgreement;
+      })
+    );
+
+    if (agreements.length === 0) {
+      throw new Error("No valid signatures found");
+    }
+    return agreements[0];
+  }
 }

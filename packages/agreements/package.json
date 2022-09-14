@@ -26,6 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "@js-ligo/vocab": "workspace:^0.1.0",
+    "dag-jose-utils": "^2.0.0",
     "did-jwt": "^6.8.0",
     "dids": "^3.2.0",
     "uint8arrays": "^3.1.0"

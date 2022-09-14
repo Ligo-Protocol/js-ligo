@@ -1,4 +1,4 @@
-import { AgreementSigner, AgreementVerifier } from "../src";
+import { AgreementSigner } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
 import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
@@ -14,7 +14,7 @@ async function createDID() {
   return did;
 }
 
-describe("verifier", () => {
+describe("signing", () => {
   const agreement: LigoAgreement = {
     order: {
       "@id": "ipfs://fake",
@@ -27,11 +27,33 @@ describe("verifier", () => {
     },
   };
 
+  test("sign raw agreement", async () => {
+    const did = await createDID();
+    const signer = new AgreementSigner(did);
+
+    const jws = await signer.signRawAgreement(agreement);
+    expect(jws).toBeDefined();
+  }, 30000);
+
+  test("sign signed agreement", async () => {
+    const didA = await createDID();
+    const signerA = new AgreementSigner(didA);
+
+    const didB = await createDID();
+    const signerB = new AgreementSigner(didB);
+
+    const jwsA = await signerA.signRawAgreement(agreement);
+    const jwsB = await signerB.signSignedAgreement(jwsA);
+
+    expect(jwsB).toBeDefined();
+    expect(jwsB.signatures.length).toBe(2);
+  }, 30000);
+
   test("verify agreement with one signature", async () => {
     const didA = await createDID();
     const didB = await createDID();
     const signer = new AgreementSigner(didA);
-    const verifier = new AgreementVerifier(didB);
+    const verifier = new AgreementSigner(didB);
 
     const jws = await signer.signRawAgreement(agreement);
     const payload = await verifier.verifyAgreement(jws);
@@ -43,12 +65,11 @@ describe("verifier", () => {
     const didB = await createDID();
     const signerA = new AgreementSigner(didA);
     const signerB = new AgreementSigner(didB);
-    const verifier = new AgreementVerifier(didB);
 
     const jwsA = await signerA.signRawAgreement(agreement);
     const jwsB = await signerB.signSignedAgreement(jwsA);
 
-    const payload = await verifier.verifyAgreement(jwsB);
+    const payload = await signerB.verifyAgreement(jwsB);
     expect(payload).toStrictEqual(agreement);
   }, 30000);
 
@@ -57,12 +78,11 @@ describe("verifier", () => {
     const didB = await createDID();
     const signerA = new AgreementSigner(didA);
     const signerB = new AgreementSigner(didB);
-    const verifier = new AgreementVerifier(didB);
 
     const jwsA = await signerA.signRawAgreement(agreement);
     const jwsB = await signerB.signSignedAgreement(jwsA);
 
-    const payloadP = verifier.verifyAgreement({
+    const payloadP = signerB.verifyAgreement({
       ...jwsB,
       signatures: [],
     });
@@ -74,13 +94,12 @@ describe("verifier", () => {
     const didB = await createDID();
     const signerA = new AgreementSigner(didA);
     const signerB = new AgreementSigner(didB);
-    const verifier = new AgreementVerifier(didB);
 
     const jwsA = await signerA.signRawAgreement(agreement);
     const jwsB = await signerB.signSignedAgreement(jwsA);
     const jwsBad = await signerB.signRawAgreement(agreementB);
 
-    const payloadP = verifier.verifyAgreement({
+    const payloadP = signerB.verifyAgreement({
       ...jwsB,
       signatures: [...jwsA.signatures, ...jwsBad.signatures],
     });

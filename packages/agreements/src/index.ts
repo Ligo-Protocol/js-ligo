@@ -1,2 +1,2 @@
-export * from "./signer";
-export * from "./verifier";
+export * from "./signing";
+export * from "./encryption";
