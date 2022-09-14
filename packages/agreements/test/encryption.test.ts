@@ -26,11 +26,11 @@ describe("encryption", () => {
 
     const did = await createDID();
     const signer = new AgreementSigner(did);
-    const encrypter = new AgreementEncrypter();
+    const encrypter = new AgreementEncrypter(key);
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const jwe = await encrypter.encryptAgreement(jws, key);
+    const jwe = await encrypter.encryptAgreement(jws);
     expect(jwe).toBeDefined();
   }, 30000);
 
@@ -39,13 +39,13 @@ describe("encryption", () => {
 
     const did = await createDID();
     const signer = new AgreementSigner(did);
-    const encrypter = new AgreementEncrypter();
+    const encrypter = new AgreementEncrypter(key);
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const jwe = await encrypter.encryptAgreement(jws, key);
+    const jwe = await encrypter.encryptAgreement(jws);
 
-    const decryptedJWS = await encrypter.decryptAgreement(jwe, key);
+    const decryptedJWS = await encrypter.decryptAgreement(jwe);
     expect(decryptedJWS).toStrictEqual(jws);
   }, 30000);
 });
