@@ -2,7 +2,11 @@ import { LigoAgreement } from "@js-ligo/vocab";
 import { DagJWS, DID } from "dids";
 
 export class AgreementVerifier {
-  constructor(private readonly did: DID) {}
+  #did: DID;
+
+  constructor(did: DID) {
+    this.#did = did;
+  }
 
   async verifyAgreement(signedAgreement: DagJWS): Promise<LigoAgreement> {
     const agreements: LigoAgreement[] = await Promise.all(
@@ -11,7 +15,7 @@ export class AgreementVerifier {
           ...signedAgreement,
           signatures: [sig],
         };
-        const result = await this.did.verifyJWS(jws);
+        const result = await this.#did.verifyJWS(jws);
         return result.payload as LigoAgreement;
       })
     );
