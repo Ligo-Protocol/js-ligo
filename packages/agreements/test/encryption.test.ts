@@ -4,6 +4,7 @@ import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
 import { randomBytes } from "@stablelib/random";
+import * as u8a from "uint8arrays";
 
 async function createDID() {
   const seed = randomBytes(32);
@@ -30,7 +31,8 @@ describe("encryption", () => {
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const jwe = await encrypter.encryptAgreement(jws);
+    const encryptedSymmetricKey = u8a.toString(key, "base64pad"); // Just store unencrypted key to show that header works. Should actually be an encrypted Lit key
+    const jwe = await encrypter.encryptAgreement(jws, encryptedSymmetricKey);
     expect(jwe).toBeDefined();
   }, 30000);
 
@@ -43,7 +45,8 @@ describe("encryption", () => {
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const jwe = await encrypter.encryptAgreement(jws);
+    const encryptedSymmetricKey = u8a.toString(key, "base64pad"); // Just store unencrypted key to show that header works. Should actually be an encrypted Lit key
+    const jwe = await encrypter.encryptAgreement(jws, encryptedSymmetricKey);
 
     const decryptedJWS = await encrypter.decryptAgreement(jwe);
     expect(decryptedJWS).toStrictEqual(jws);
