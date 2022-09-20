@@ -25,11 +25,23 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@ipld/car": "^4.1.5",
+    "@ipld/dag-pb": "^2.1.18",
     "@js-ligo/vocab": "workspace:^0.1.0",
+    "@typescript-eslint/parser": "^4.9.1",
+    "dag-jose": "^2.0.1",
     "dag-jose-utils": "^2.0.0",
     "did-jwt": "^6.8.0",
     "dids": "^3.2.0",
-    "uint8arrays": "^3.1.0"
+    "eslint": "^6.0.0",
+    "ipfs-core": "^0.16.0",
+    "ipfs-core-types": "^0.12.0",
+    "multiformats": "^9.9.0",
+    "node-fetch": "*",
+    "typescript": "^4.7.4",
+    "uint8arrays": "^3.1.0",
+    "undici": "*",
+    "web3.storage": "^4.4.0"
   },
   "devDependencies": {
     "@stablelib/random": "^1.0.2",
