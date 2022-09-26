@@ -16,7 +16,8 @@
     "build:js": "swc src -d ./dist --config-file ../../.swcrc",
     "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
     "build": "pnpm build:clean && pnpm build:types && pnpm build:js",
-    "lint": "eslint src/* --fix",
+    "test:it": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "lint": "eslint src/* test/* --fix",
     "prepare": "pnpm build"
   },
   "keywords": [],
@@ -27,8 +28,8 @@
     "@js-ligo/agreements": "workspace:^0.1.0",
     "@js-ligo/vocab": "workspace:^0.1.0",
     "@orbisclub/orbis-sdk": "^0.3.46",
-    "dids": "^3.4.0",
-    "did-session": "^0.1.4"
+    "did-session": "^0.1.4",
+    "dids": "^3.4.0"
   },
   "jest": {
     "extensionsToTreatAsEsm": [
@@ -45,5 +46,9 @@
         }
       ]
     }
+  },
+  "devDependencies": {
+    "@ethersproject/wallet": "^5.7.0",
+    "uint8arrays": "^3.1.0"
   }
 }
