@@ -1,13 +1,17 @@
 import { Orbis } from "@orbisclub/orbis-sdk";
 import { DIDSession } from "did-session";
-import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
+import {
+  EthereumAuthProvider,
+  CapabilityOpts,
+} from "@ceramicnetwork/blockchain-utils-linking";
 import { LigoAgreement } from "@js-ligo/vocab";
 import {
   AgreementSigner,
   // AgreementEncrypter,
   // AgreementStorageProvider,
 } from "@js-ligo/agreements";
-import { DagJWS, DID } from "dids";
+import { DagJWS } from "dids";
+import { AccountId } from "caip";
 
 const ORBIS_CONTEXT = "Ligo";
 
@@ -17,32 +21,35 @@ export class LigoClient {
   #orbis: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
+  #account: AccountId;
   #session?: DIDSession;
   #agreementSigner?: AgreementSigner;
   // #agreementStorageProvider: AgreementStorageProvider;
 
   constructor(
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    ethProvider: any
+    ethProvider: any,
+    account: AccountId
     // agreementStorageProvider: AgreementStorageProvider
   ) {
     this.#ethProvider = ethProvider;
     this.#orbis = new Orbis();
+    this.#account = account;
     // this.#agreementStorageProvider = agreementStorageProvider;
   }
 
-  async connect() {
+  async connect(opts: CapabilityOpts) {
     const isConnected = await this.#orbis.isConnected();
 
     if (!isConnected) {
-      const addresses = await this.#ethProvider.enable();
       const authProvider = new EthereumAuthProvider(
         this.#ethProvider,
-        addresses[0]
+        this.#account.address
       );
 
       this.#session = await DIDSession.authorize(authProvider, {
         resources: ["ceramic://*"],
+        ...opts,
       });
 
       try {
@@ -50,6 +57,14 @@ export class LigoClient {
         localStorage.setItem("ceramic-session", sessionString);
       } catch (e) {
         console.log("Error creating sessionString: " + e);
+      }
+
+      const res = await this.#orbis.connectLit(
+        this.#ethProvider,
+        this.#account.address.toLowerCase()
+      );
+      if (res.status !== 200) {
+        throw res.error;
       }
 
       await this.#orbis.isConnected();
@@ -74,7 +89,7 @@ export class LigoClient {
    *
    * Encrypts, stores, and sends offer via Orbis
    */
-  async sendAgreement(recipient: DID) {
+  async sendAgreement(recipient: AccountId) {
     // Load conversation
     const conversationId = await this.loadOrCreateConversation(recipient);
 
@@ -91,19 +106,24 @@ export class LigoClient {
   /**
    * Loads an existing or creates a new conversation with a recipient
    */
-  async loadOrCreateConversation(recipient: DID): Promise<string> {
+  async loadOrCreateConversation(recipient: AccountId): Promise<string> {
     try {
-      const existingConversationId = this._loadConversation(recipient);
-      return existingConversationId;
+      const existingConversationId = await this._loadConversation(recipient);
+      if (existingConversationId) {
+        return existingConversationId;
+      } else {
+        const newConversationId = await this._createConversation(recipient);
+        return newConversationId;
+      }
     } catch {
-      const newConversationId = this._createConversation(recipient);
+      const newConversationId = await this._createConversation(recipient);
       return newConversationId;
     }
   }
 
-  private async _createConversation(recipient: DID): Promise<string> {
+  private async _createConversation(recipient: AccountId): Promise<string> {
     const res = await this.#orbis.createConversation({
-      recipients: [recipient.id],
+      recipients: [`did:pkh:${recipient.toString()}`],
       context: ORBIS_CONTEXT,
     });
 
@@ -114,7 +134,9 @@ export class LigoClient {
     }
   }
 
-  private async _loadConversation(recipient: DID): Promise<string> {
+  private async _loadConversation(
+    recipient: AccountId
+  ): Promise<string | null> {
     if (!this.#session) {
       throw new Error("LigoClient is not connected");
     }
@@ -124,12 +146,15 @@ export class LigoClient {
       context: ORBIS_CONTEXT,
     });
 
-    if (!error) {
+    if (!error && data.length > 0) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const conversations = data as Array<any>;
       const recipientConversation = conversations.find(
-        (c) => c.recipients.length === 1 && c.recipients[0] === recipient.id
+        (c) =>
+          c.recipients.length === 1 &&
+          c.recipients[0] === `did:pkh:${recipient.toString()}`
       );
+      if (!recipientConversation) return null;
       return recipientConversation.stream_id as string;
     } else {
       throw new Error("Error loading conversations: ", error);
