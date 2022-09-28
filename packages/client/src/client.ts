@@ -7,11 +7,14 @@ import {
 import { LigoAgreement } from "@js-ligo/vocab";
 import {
   AgreementSigner,
-  // AgreementEncrypter,
-  // AgreementStorageProvider,
+  AgreementEncrypter,
+  AgreementStorageProvider,
 } from "@js-ligo/agreements";
 import { DagJWS } from "dids";
 import { AccountId } from "caip";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import LitJsSdk from "@lit-protocol/sdk-browser";
+import { CID } from "multiformats/cid";
 
 const ORBIS_CONTEXT = "Ligo";
 
@@ -19,23 +22,27 @@ export class LigoClient {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   #ethProvider: any;
   #orbis: any;
+  #litClient: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   #account: AccountId;
   #session?: DIDSession;
+  #ceramic: CeramicClient;
   #agreementSigner?: AgreementSigner;
-  // #agreementStorageProvider: AgreementStorageProvider;
+  #agreementStorageProvider: AgreementStorageProvider;
 
   constructor(
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     ethProvider: any,
-    account: AccountId
-    // agreementStorageProvider: AgreementStorageProvider
+    account: AccountId,
+    agreementStorageProvider: AgreementStorageProvider
   ) {
     this.#ethProvider = ethProvider;
     this.#orbis = new Orbis();
+    this.#ceramic = this.#orbis.ceramic as CeramicClient;
+    this.#litClient = new LitJsSdk.LitNodeClient();
     this.#account = account;
-    // this.#agreementStorageProvider = agreementStorageProvider;
+    this.#agreementStorageProvider = agreementStorageProvider;
   }
 
   async connect(opts: CapabilityOpts) {
@@ -71,6 +78,9 @@ export class LigoClient {
 
       this.#agreementSigner = new AgreementSigner(this.#session.did);
     }
+
+    // Connect to Lit Client
+    await this.#litClient.connect();
   }
 
   /**
@@ -89,7 +99,10 @@ export class LigoClient {
    *
    * Encrypts, stores, and sends offer via Orbis
    */
-  async sendAgreement(recipient: AccountId) {
+  async sendAgreement(
+    signedAgreement: DagJWS,
+    recipient: AccountId
+  ): Promise<CID> {
     // Load conversation
     const conversationId = await this.loadOrCreateConversation(recipient);
 
@@ -99,8 +112,42 @@ export class LigoClient {
       body: `I would like to form a Ligo agreement with you:`,
     });
 
-    console.log(firstMsg);
-    // this.#agreementStorageProvider.storeAgreement()
+    if (firstMsg.status !== 200) {
+      throw new Error("Failed to send first message");
+    }
+
+    // Fetch encrypted key info from first message
+    const firstMsgStream = await this.#ceramic.loadStream(firstMsg.doc);
+    const authSig = this._getAuthSig();
+    const symmetricKey = await this.#litClient.getEncryptionKey({
+      accessControlConditions: JSON.parse(
+        firstMsgStream.content.encryptedMessage.accessControlConditions
+      ),
+      toDecrypt: firstMsgStream.content.encryptedMessage.encryptedSymmetricKey,
+      chain: this.#account.chainId.reference,
+      authSig,
+    });
+
+    const agreementEncrypter = new AgreementEncrypter(symmetricKey);
+    const encryptedAgreement = await agreementEncrypter.encryptAgreement(
+      signedAgreement,
+      firstMsgStream.content.encryptedMessage.encryptedSymmetricKey
+    );
+    const cid = await this.#agreementStorageProvider.storeAgreement(
+      encryptedAgreement
+    );
+
+    // Send second message with CID
+    const secondMsg = await this.#orbis.sendMessage({
+      conversation_id: conversationId,
+      body: cid.toString(),
+    });
+
+    if (secondMsg.status !== 200) {
+      throw new Error("Failed to send second message");
+    }
+
+    return cid;
   }
 
   /**
@@ -158,6 +205,18 @@ export class LigoClient {
       return recipientConversation.stream_id as string;
     } else {
       throw new Error("Error loading conversations: ", error);
+    }
+  }
+
+  private _getAuthSig() {
+    const authSig = JSON.parse(
+      localStorage.getItem("lit-auth-signature") ?? ""
+    );
+    if (authSig && authSig !== "") {
+      return authSig;
+    } else {
+      console.log("User not authenticated to Lit Protocol for messages");
+      throw new Error("User not authenticated to Lit Protocol for messages");
     }
   }
 }

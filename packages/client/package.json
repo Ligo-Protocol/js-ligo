@@ -25,11 +25,14 @@
   "license": "MIT",
   "dependencies": {
     "@ceramicnetwork/blockchain-utils-linking": "^2.0.12",
+    "@ceramicnetwork/http-client": "^2.4.0",
     "@js-ligo/agreements": "workspace:^0.1.0",
     "@js-ligo/vocab": "workspace:^0.1.0",
+    "@lit-protocol/sdk-browser": "^1.1.226",
     "@orbisclub/orbis-sdk": "^0.3.46",
     "did-session": "^0.1.4",
-    "dids": "^3.4.0"
+    "dids": "^3.4.0",
+    "multiformats": "^9.9.0"
   },
   "jest": {
     "extensionsToTreatAsEsm": [
@@ -49,7 +52,21 @@
   },
   "devDependencies": {
     "@ethersproject/wallet": "^5.7.0",
+    "@peculiar/webcrypto": "^1.4.0",
+    "@typescript-eslint/parser": "^4.9.1",
+    "blockcodec-to-ipld-format": "^2.0.0",
     "caip": "^1.1.0",
-    "uint8arrays": "^3.1.0"
+    "dag-jose": "^2.0.1",
+    "did-jwt": "^6.8.0",
+    "eslint": "^6.0.0",
+    "ipfs": "^0.64.2",
+    "ipfs-core-types": "^0.12.0",
+    "jest-environment-node": "^29.0.3",
+    "node-fetch": "*",
+    "typescript": "^4.7.4",
+    "uint8arrays": "^3.1.0",
+    "undici": "*",
+    "vblob": "^1.0.2",
+    "web3.storage": "^4.4.0"
   }
 }

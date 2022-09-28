@@ -1,10 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LigoClient } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
+import { AgreementStorageProvider } from "@js-ligo/agreements";
 import { Wallet as EthereumWallet } from "@ethersproject/wallet";
 import { AccountId } from "caip";
 import { EventEmitter } from "events";
 import { fromString, toString } from "uint8arrays";
+import { Crypto } from "@peculiar/webcrypto";
+import { Blob, FileReader } from "vblob";
+import { JWE } from "did-jwt";
+import { CID } from "multiformats/cid";
 
+class StubAgreementStorageProvider implements AgreementStorageProvider {
+  async storeAgreement(encryptedAgreement: JWE): Promise<CID> {
+    console.log(encryptedAgreement);
+    return CID.parse("bafyqacnbmrqxgzdgdeaui");
+  }
+  async fetchAgreement(_: CID): Promise<JWE> {
+    throw new Error("Not implemented");
+  }
+}
 class EthereumProvider extends EventEmitter {
   wallet: EthereumWallet;
 
@@ -24,7 +39,6 @@ class EthereumProvider extends EventEmitter {
       if (message.startsWith("0x")) {
         message = toString(fromString(message.slice(2), "base16"), "utf8");
       }
-      console.log(this.wallet.address);
       callback(null, { result: this.wallet.signMessage(message) });
     } else if (request.method === "eth_accounts") {
       callback(null, { result: [this.wallet.address] });
@@ -67,6 +81,9 @@ class LocalStorageMock {
   }
 }
 
+global.crypto = new Crypto();
+global.Blob = Blob as any;
+global.FileReader = FileReader as any;
 global.localStorage = new LocalStorageMock() as unknown as Storage;
 globalThis.location = {
   host: "localhost",
@@ -83,12 +100,14 @@ describe("LigoClient", () => {
   async function buildAndConnectClient() {
     const wallet = EthereumWallet.createRandom();
     const provider = new EthereumProvider(wallet);
+    const storageProvider = new StubAgreementStorageProvider();
     const client = new LigoClient(
       provider,
       new AccountId({
         address: wallet.address,
         chainId: `eip155:1`,
-      })
+      }),
+      storageProvider
     );
     await client.connect({ domain: "localhost" });
 
@@ -101,6 +120,8 @@ describe("LigoClient", () => {
 
       const jws = await client.signAgreement(agreement);
       expect(jws).toBeDefined();
+
+      localStorage.setItem("ceramic-session", "");
     }, 30000);
   });
 
@@ -109,12 +130,14 @@ describe("LigoClient", () => {
       const client = await buildAndConnectClient();
       const recipientWallet = EthereumWallet.createRandom();
       const recipient = new AccountId({
-        address: recipientWallet.address,
+        address: "0x4b0bfe4b52e18b4f9d4c702ba7167829b91fcc63",
         chainId: `eip155:1`,
       });
 
-      // const jws = await client.signAgreement(agreement);
-      await client.sendAgreement(recipient);
+      const jws = await client.signAgreement(agreement);
+      const cid = await client.sendAgreement(jws, recipient);
+
+      expect(cid).toBeDefined();
     }, 30000);
   });
 });
