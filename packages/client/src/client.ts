@@ -13,7 +13,7 @@ import {
 import { DagJWS } from "dids";
 import { AccountId } from "caip";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import LitJsSdk from "@lit-protocol/sdk-browser";
+import LitJsSdk from "lit-js-sdk";
 import { CID } from "multiformats/cid";
 
 const ORBIS_CONTEXT = "Ligo";
@@ -48,7 +48,7 @@ export class LigoClient {
   async connect(opts: CapabilityOpts) {
     const isConnected = await this.#orbis.isConnected();
 
-    if (!isConnected) {
+    if (isConnected.status !== 200) {
       const authProvider = new EthereumAuthProvider(
         this.#ethProvider,
         this.#account.address
@@ -66,12 +66,13 @@ export class LigoClient {
         console.log("Error creating sessionString: " + e);
       }
 
-      const res = await this.#orbis.connectLit(
-        this.#ethProvider,
-        this.#account.address.toLowerCase()
-      );
+      const res = await this.#orbis.connectLit({
+        provider: this.#ethProvider,
+        address: this.#account.address.toLowerCase(),
+      });
+
       if (res.status !== 200) {
-        throw res.error;
+        throw new Error(res.result);
       }
 
       await this.#orbis.isConnected();
@@ -150,6 +151,28 @@ export class LigoClient {
     return cid;
   }
 
+  async getOfferResponses() {
+    const conversations = await this._loadLigoConversations();
+    console.log(
+      await Promise.all(
+        conversations.map(async (c) => {
+          const { data, error } = await this.#orbis.getMessages(c.stream_id);
+          if (!error) {
+            return await Promise.all(
+              /* eslint-disable @typescript-eslint/no-explicit-any */
+              data.map(async (v: any) => {
+                console.log(v.content);
+                return await this.#orbis.decryptMessage(v.content);
+              })
+            );
+          } else {
+            throw new Error("Error loading messages: ", error);
+          }
+        })
+      )
+    );
+  }
+
   /**
    * Loads an existing or creates a new conversation with a recipient
    */
@@ -181,31 +204,36 @@ export class LigoClient {
     }
   }
 
-  private async _loadConversation(
-    recipient: AccountId
-  ): Promise<string | null> {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private async _loadLigoConversations(): Promise<any[]> {
     if (!this.#session) {
       throw new Error("LigoClient is not connected");
     }
 
+    console.log(`did:pkh:${this.#account.toString()}`);
     const { data, error } = await this.#orbis.getConversations({
-      did: this.#session.did.id,
-      context: ORBIS_CONTEXT,
+      did: `did:pkh:${this.#account.toString()}`,
     });
 
-    if (!error && data.length > 0) {
+    if (!error) {
       /* eslint-disable @typescript-eslint/no-explicit-any */
-      const conversations = data as Array<any>;
-      const recipientConversation = conversations.find(
-        (c) =>
-          c.recipients.length === 1 &&
-          c.recipients[0] === `did:pkh:${recipient.toString()}`
-      );
-      if (!recipientConversation) return null;
-      return recipientConversation.stream_id as string;
+      return data as Array<any>;
     } else {
       throw new Error("Error loading conversations: ", error);
     }
+  }
+
+  private async _loadConversation(
+    recipient: AccountId
+  ): Promise<string | null> {
+    const conversations = await this._loadLigoConversations();
+    const recipientConversation = conversations.find(
+      (c) =>
+        c.recipients.length === 1 &&
+        c.recipients[0] === `did:pkh:${recipient.toString()}`
+    );
+    if (!recipientConversation) return null;
+    return recipientConversation.stream_id as string;
   }
 
   private _getAuthSig() {

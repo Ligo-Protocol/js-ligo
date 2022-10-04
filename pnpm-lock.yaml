@@ -90,8 +90,7 @@ importers:
       '@ethersproject/wallet': ^5.7.0
       '@js-ligo/agreements': workspace:^0.1.0
       '@js-ligo/vocab': workspace:^0.1.0
-      '@lit-protocol/sdk-browser': ^1.1.226
-      '@orbisclub/orbis-sdk': ^0.3.46
+      '@orbisclub/orbis-sdk': ^0.3.56
       '@peculiar/webcrypto': ^1.4.0
       '@typescript-eslint/parser': ^4.9.1
       blockcodec-to-ipld-format: ^2.0.0
@@ -104,6 +103,7 @@ importers:
       ipfs: ^0.64.2
       ipfs-core-types: ^0.12.0
       jest-environment-node: ^29.0.3
+      lit-js-sdk: ^1.1.185
       multiformats: ^9.9.0
       node-fetch: '*'
       typescript: ^4.7.4
@@ -116,10 +116,10 @@ importers:
       '@ceramicnetwork/http-client': 2.4.0
       '@js-ligo/agreements': link:../agreements
       '@js-ligo/vocab': link:../vocab
-      '@lit-protocol/sdk-browser': 1.1.226
-      '@orbisclub/orbis-sdk': 0.3.46
+      '@orbisclub/orbis-sdk': 0.3.80
       did-session: 0.1.4
       dids: 3.4.0
+      lit-js-sdk: 1.1.226
       multiformats: 9.9.0
     devDependencies:
       '@ethersproject/wallet': 5.7.0
@@ -720,6 +720,27 @@ packages:
       '@ethersproject/wallet': 5.7.0
       '@stablelib/random': 1.0.2
       caip: 1.1.0
+    dev: false
+
+  /@didtools/pkh-ethereum/0.0.2:
+    resolution: {integrity: sha512-ka+iwlvBCVQqO3btZ1wssAm0VmG25nqZkD1rSV5IRT8LNAvne2cjKzt/hMutK9PULMD/yJRifwFupgfu7JI9Cg==}
+    engines: {node: '>=14.14'}
+    dependencies:
+      '@didtools/cacao': 1.0.0
+      '@ethersproject/wallet': 5.7.0
+      '@stablelib/random': 1.0.2
+      caip: 1.1.0
+    dev: false
+
+  /@didtools/pkh-solana/0.0.2:
+    resolution: {integrity: sha512-PTV8Eu37+/7u+GNqH0fjjoiUpss5v9cfpnCo5yXi+lQ06VR02MvMAfWtI61+QN8xjgmd8wHpQP7CtX32skWOxw==}
+    engines: {node: '>=14.14'}
+    dependencies:
+      '@didtools/cacao': 1.0.0
+      '@stablelib/ed25519': 1.0.3
+      '@stablelib/random': 1.0.2
+      caip: 1.1.0
+      uint8arrays: 3.1.0
     dev: false
 
   /@eslint/eslintrc/0.4.3:
@@ -1670,7 +1691,7 @@ packages:
       '@json-rpc-tools/utils': 1.7.6
       axios: 0.21.4
       safe-json-utils: 1.1.1
-      ws: 7.4.6_22kvxa7zeyivx4jp72v2w3pkvy
+      ws: 7.5.3_22kvxa7zeyivx4jp72v2w3pkvy
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -2565,35 +2586,6 @@ packages:
       - undici
       - utf-8-validate
 
-  /@lit-protocol/sdk-browser/1.1.226:
-    resolution: {integrity: sha512-xZuvVEv/B2HI2yH3hGYM9LgQGqG5ROJZ+DVMkIyvgANp0ob14GfB+2+MkFWPQGgdW0bPwg4Zbhv1ymtGLm9ocA==}
-    dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/contracts': 5.7.0
-      '@ethersproject/hash': 5.7.0
-      '@ethersproject/providers': 5.7.1_22kvxa7zeyivx4jp72v2w3pkvy
-      '@ethersproject/strings': 5.7.0
-      '@ethersproject/units': 5.7.0
-      '@ethersproject/wallet': 5.7.0
-      '@walletconnect/ethereum-provider': 1.8.0_22kvxa7zeyivx4jp72v2w3pkvy
-      buffer: 6.0.3
-      bufferutil: 4.0.6
-      cross-blob: 3.0.1
-      jszip: 3.10.1
-      lit-connect-modal: 0.1.10
-      lit-siwe: 1.1.8_7ewp7ho3uw4uxoxzmjusfnldry
-      node-fetch: 3.2.10
-      pako: 2.0.4
-      tslib: 2.4.0
-      tweetnacl: 1.0.3
-      tweetnacl-util: 0.15.1
-      uint8arrays: 3.1.0
-      utf-8-validate: 5.0.9
-    transitivePeerDependencies:
-      - debug
-      - encoding
-    dev: false
-
   /@mapbox/node-pre-gyp/1.0.10:
     resolution: {integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==}
     hasBin: true
@@ -2709,22 +2701,25 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
 
-  /@orbisclub/orbis-sdk/0.3.46:
-    resolution: {integrity: sha512-n+vB3QaO+ZUSKsH9Z+VrAOD8E8BdKRgHsuivps8WA0N6/jutFaInnY4fgnmjZNkIuDXw4LuMGnpWLIhan6hhAg==}
+  /@orbisclub/orbis-sdk/0.3.80:
+    resolution: {integrity: sha512-fS5FP/FGdBTbuLxLxMkEU0eSVeshqsBjDr0nF6NR9JJt7yoO/mADuCm+nn6mHClJqWTb0yNg5yzPRP7kc4Dncg==}
     dependencies:
       '@ceramicnetwork/blockchain-utils-linking': 2.0.12
       '@ceramicnetwork/http-client': 2.4.0
       '@ceramicnetwork/stream-tile': 2.4.4
+      '@didtools/pkh-ethereum': 0.0.2
+      '@didtools/pkh-solana': 0.0.2
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/providers': 5.7.1
       '@ethersproject/strings': 5.7.0
       '@supabase/supabase-js': 1.35.7
       buffer: 6.0.3
-      did-session: 0.1.4
+      did-session: 1.0.0
       dids: 3.4.0
       key-did-provider-ed25519: 2.0.1
       key-did-resolver: 2.1.2
       lit-js-sdk: 1.1.226
+      uint8arrays: 3.1.0
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -5277,6 +5272,20 @@ packages:
     engines: {node: '>=14.14'}
     dependencies:
       '@ceramicnetwork/blockchain-utils-linking': 2.0.12
+      '@ceramicnetwork/stream-tile': 2.4.4
+      '@stablelib/random': 1.0.2
+      dids: 3.4.0
+      key-did-provider-ed25519: 2.0.1
+      key-did-resolver: 2.1.2
+      uint8arrays: 3.1.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /did-session/1.0.0:
+    resolution: {integrity: sha512-hLKlfPGoEp9T6malsuNyF1bCrU0AcECZJ1SP2lvbHiic7ko2PdiZPmmVipVId+ZqmshU4AlLLEozZc9Iu1X1UA==}
+    engines: {node: '>=14.14'}
+    dependencies:
       '@ceramicnetwork/stream-tile': 2.4.4
       '@stablelib/random': 1.0.2
       dids: 3.4.0

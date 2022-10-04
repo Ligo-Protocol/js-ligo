@@ -68,7 +68,6 @@ class LocalStorageMock {
   }
 
   setItem(key, value) {
-    console.log(key, value);
     this.store[key] = value;
   }
 
@@ -97,26 +96,27 @@ describe("LigoClient", () => {
     },
   };
 
-  async function buildAndConnectClient() {
-    const wallet = EthereumWallet.createRandom();
+  async function buildAndConnectClient(_wallet?: EthereumWallet) {
+    const wallet = _wallet ?? EthereumWallet.createRandom();
     const provider = new EthereumProvider(wallet);
     const storageProvider = new StubAgreementStorageProvider();
-    const client = new LigoClient(
-      provider,
-      new AccountId({
-        address: wallet.address,
-        chainId: `eip155:1`,
-      }),
-      storageProvider
-    );
+    const account = new AccountId({
+      address: wallet.address,
+      chainId: `eip155:1`,
+    });
+    const client = new LigoClient(provider, account, storageProvider);
     await client.connect({ domain: "localhost" });
 
-    return client;
+    return { client, account };
   }
+
+  beforeEach(() => {
+    global.localStorage.clear();
+  });
 
   describe("signAgreement", () => {
     test("sign agreement", async () => {
-      const client = await buildAndConnectClient();
+      const { client } = await buildAndConnectClient();
 
       const jws = await client.signAgreement(agreement);
       expect(jws).toBeDefined();
@@ -127,17 +127,35 @@ describe("LigoClient", () => {
 
   describe("sendAgreement", () => {
     test("send agreement", async () => {
-      const client = await buildAndConnectClient();
-      const recipientWallet = EthereumWallet.createRandom();
+      const { client } = await buildAndConnectClient();
       const recipient = new AccountId({
         address: "0x4b0bfe4b52e18b4f9d4c702ba7167829b91fcc63",
-        chainId: `eip155:1`,
+        chainId: `eip155:420`,
       });
 
       const jws = await client.signAgreement(agreement);
       const cid = await client.sendAgreement(jws, recipient);
 
       expect(cid).toBeDefined();
+    }, 30000);
+  });
+
+  describe("getOfferResponses", () => {
+    test("get offer response", async () => {
+      const { client: client1 } = await buildAndConnectClient();
+
+      const wallet2 = EthereumWallet.createRandom();
+      const account2 = new AccountId({
+        address: wallet2.address,
+        chainId: `eip155:1`,
+      });
+
+      const jws = await client1.signAgreement(agreement);
+      const cid1 = await client1.sendAgreement(jws, account2);
+
+      global.localStorage.clear();
+      const { client: client2 } = await buildAndConnectClient(wallet2);
+      await client2.getOfferResponses();
     }, 30000);
   });
 });
