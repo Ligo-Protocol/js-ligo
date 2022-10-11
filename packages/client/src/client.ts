@@ -1,4 +1,4 @@
-import { Orbis } from "@orbisclub/orbis-sdk";
+import { Client as XMTPClient, Conversation } from "@xmtp/xmtp-js";
 import { DIDSession } from "did-session";
 import {
   EthereumAuthProvider,
@@ -12,76 +12,90 @@ import {
 } from "@js-ligo/agreements";
 import { DagJWS } from "dids";
 import { AccountId } from "caip";
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import LitJsSdk from "lit-js-sdk";
+import LitJsSdk from "@lit-protocol/sdk-browser";
 import { CID } from "multiformats/cid";
+import { Signer } from "ethers";
+import { SiwxMessage } from "ceramic-cacao";
 
-const ORBIS_CONTEXT = "Ligo";
+const MSG_PREFIX = "I would like to form a Ligo agreement with you:";
+
+export type OfferResponse = {
+  from: AccountId;
+  agreementCid: string;
+};
 
 export class LigoClient {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   #ethProvider: any;
-  #orbis: any;
+  #ethSigner: Signer;
   #litClient: any;
+  #litLib: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   #account: AccountId;
   #session?: DIDSession;
-  #ceramic: CeramicClient;
   #agreementSigner?: AgreementSigner;
   #agreementStorageProvider: AgreementStorageProvider;
+  #xmtp?: XMTPClient;
 
   constructor(
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     ethProvider: any,
+    ethSigner: Signer,
     account: AccountId,
-    agreementStorageProvider: AgreementStorageProvider
+    agreementStorageProvider: AgreementStorageProvider,
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    litLibOverride?: any
   ) {
+    this.#ethSigner = ethSigner;
     this.#ethProvider = ethProvider;
-    this.#orbis = new Orbis();
-    this.#ceramic = this.#orbis.ceramic as CeramicClient;
-    this.#litClient = new LitJsSdk.LitNodeClient();
+    // this.#ceramic = this.#orbis.ceramic as CeramicClient;
+    this.#litLib = litLibOverride ?? LitJsSdk;
+    this.#litClient = new this.#litLib.LitNodeClient({
+      alertWhenUnauthorized: false,
+    });
     this.#account = account;
     this.#agreementStorageProvider = agreementStorageProvider;
   }
 
   async connect(opts: CapabilityOpts) {
-    const isConnected = await this.#orbis.isConnected();
+    this.#xmtp = await XMTPClient.create(this.#ethSigner);
 
-    if (isConnected.status !== 200) {
-      const authProvider = new EthereumAuthProvider(
-        this.#ethProvider,
-        this.#account.address
-      );
+    const authProvider = new EthereumAuthProvider(
+      this.#ethProvider,
+      this.#account.address
+    );
 
+    const sessionStr = localStorage.getItem("ceramic-session");
+    if (sessionStr) {
+      this.#session = await DIDSession.fromSession(sessionStr);
+    }
+
+    if (
+      !this.#session ||
+      (this.#session.hasSession && this.#session.isExpired)
+    ) {
       this.#session = await DIDSession.authorize(authProvider, {
         resources: ["ceramic://*"],
         ...opts,
       });
-
-      try {
-        const sessionString = this.#session.serialize();
-        localStorage.setItem("ceramic-session", sessionString);
-      } catch (e) {
-        console.log("Error creating sessionString: " + e);
-      }
-
-      const res = await this.#orbis.connectLit({
-        provider: this.#ethProvider,
-        address: this.#account.address.toLowerCase(),
-      });
-
-      if (res.status !== 200) {
-        throw new Error(res.result);
-      }
-
-      await this.#orbis.isConnected();
-
-      this.#agreementSigner = new AgreementSigner(this.#session.did);
+      localStorage.setItem("ceramic-session", this.#session.serialize());
     }
+
+    this.#agreementSigner = new AgreementSigner(this.#session.did);
 
     // Connect to Lit Client
     await this.#litClient.connect();
+    const msg = SiwxMessage.fromCacao(this.#session.cacao).toMessage(
+      "Ethereum"
+    );
+    const authSig = {
+      sig: this.#session.cacao.s?.s,
+      derivedVia: "web3.eth.personal.sign",
+      signedMessage: msg,
+      address: this.#account.address,
+    };
+    localStorage.setItem("lit-auth-signature", JSON.stringify(authSig));
   }
 
   /**
@@ -104,136 +118,107 @@ export class LigoClient {
     signedAgreement: DagJWS,
     recipient: AccountId
   ): Promise<CID> {
-    // Load conversation
-    const conversationId = await this.loadOrCreateConversation(recipient);
-
-    // Send first part
-    const firstMsg = await this.#orbis.sendMessage({
-      conversation_id: conversationId,
-      body: `I would like to form a Ligo agreement with you:`,
-    });
-
-    if (firstMsg.status !== 200) {
-      throw new Error("Failed to send first message");
-    }
-
-    // Fetch encrypted key info from first message
-    const firstMsgStream = await this.#ceramic.loadStream(firstMsg.doc);
+    const { symmetricKey } = await LitJsSdk.encryptString("");
     const authSig = this._getAuthSig();
-    const symmetricKey = await this.#litClient.getEncryptionKey({
-      accessControlConditions: JSON.parse(
-        firstMsgStream.content.encryptedMessage.accessControlConditions
-      ),
-      toDecrypt: firstMsgStream.content.encryptedMessage.encryptedSymmetricKey,
-      chain: this.#account.chainId.reference,
+
+    const encryptedSymmetricKey = await this.#litClient.saveEncryptionKey({
+      accessControlConditions: this._generateAccessControlConditions(recipient),
+      symmetricKey,
       authSig,
+      chain: this.#account.chainId.reference,
     });
 
     const agreementEncrypter = new AgreementEncrypter(symmetricKey);
     const encryptedAgreement = await agreementEncrypter.encryptAgreement(
       signedAgreement,
-      firstMsgStream.content.encryptedMessage.encryptedSymmetricKey
+      encryptedSymmetricKey
     );
     const cid = await this.#agreementStorageProvider.storeAgreement(
       encryptedAgreement
     );
 
-    // Send second message with CID
-    const secondMsg = await this.#orbis.sendMessage({
-      conversation_id: conversationId,
-      body: cid.toString(),
-    });
+    // Load conversation
+    const conversation = await this.loadOrCreateConversation(recipient);
 
-    if (secondMsg.status !== 200) {
-      throw new Error("Failed to send second message");
+    // Send message
+    const msg = await conversation.send(`${MSG_PREFIX}\n${cid.toString()}`);
+    if (msg.error) {
+      throw new Error("Failed to send first message: ", msg.error);
     }
 
     return cid;
   }
 
-  async getOfferResponses() {
+  async getOfferResponses(): Promise<OfferResponse[]> {
     const conversations = await this._loadLigoConversations();
-    console.log(
-      await Promise.all(
-        conversations.map(async (c) => {
-          const { data, error } = await this.#orbis.getMessages(c.stream_id);
-          if (!error) {
-            return await Promise.all(
-              /* eslint-disable @typescript-eslint/no-explicit-any */
-              data.map(async (v: any) => {
-                console.log(v.content);
-                return await this.#orbis.decryptMessage(v.content);
-              })
-            );
-          } else {
-            throw new Error("Error loading messages: ", error);
-          }
-        })
-      )
+    return await Promise.all(
+      conversations.map(async (c) => {
+        const messages = await c.messages();
+        const offerResponseMsgs = messages.filter((m) =>
+          (m.content as string).startsWith(MSG_PREFIX)
+        );
+        return {
+          from: new AccountId({
+            address: offerResponseMsgs[0].senderAddress!,
+            chainId: `eip155:1`,
+          }),
+          agreementCid: offerResponseMsgs[0].content.split("\n")[1] as string,
+        };
+      })
     );
   }
 
   /**
    * Loads an existing or creates a new conversation with a recipient
    */
-  async loadOrCreateConversation(recipient: AccountId): Promise<string> {
+  async loadOrCreateConversation(recipient: AccountId): Promise<Conversation> {
     try {
-      const existingConversationId = await this._loadConversation(recipient);
-      if (existingConversationId) {
-        return existingConversationId;
+      const existingConversation = await this._loadConversation(recipient);
+      if (existingConversation) {
+        return existingConversation;
       } else {
-        const newConversationId = await this._createConversation(recipient);
-        return newConversationId;
+        const newConversation = await this._createConversation(recipient);
+        return newConversation;
       }
     } catch {
-      const newConversationId = await this._createConversation(recipient);
-      return newConversationId;
+      const newConversation = await this._createConversation(recipient);
+      return newConversation;
     }
   }
 
-  private async _createConversation(recipient: AccountId): Promise<string> {
-    const res = await this.#orbis.createConversation({
-      recipients: [`did:pkh:${recipient.toString()}`],
-      context: ORBIS_CONTEXT,
-    });
-
-    if (res.status === 200) {
-      return res.doc as string;
-    } else {
-      throw new Error("Error creating conversation: ", res);
-    }
-  }
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  private async _loadLigoConversations(): Promise<any[]> {
-    if (!this.#session) {
+  private async _createConversation(
+    recipient: AccountId
+  ): Promise<Conversation> {
+    if (!this.#xmtp) {
       throw new Error("LigoClient is not connected");
     }
 
-    console.log(`did:pkh:${this.#account.toString()}`);
-    const { data, error } = await this.#orbis.getConversations({
-      did: `did:pkh:${this.#account.toString()}`,
-    });
+    const conversation = await this.#xmtp.conversations.newConversation(
+      recipient.address
+    );
 
-    if (!error) {
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      return data as Array<any>;
-    } else {
-      throw new Error("Error loading conversations: ", error);
+    return conversation;
+  }
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private async _loadLigoConversations(): Promise<Conversation[]> {
+    if (!this.#xmtp) {
+      throw new Error("LigoClient is not connected");
     }
+
+    const allConversations = await this.#xmtp.conversations.list();
+    return allConversations;
   }
 
   private async _loadConversation(
     recipient: AccountId
-  ): Promise<string | null> {
+  ): Promise<Conversation | null> {
     const conversations = await this._loadLigoConversations();
     const recipientConversation = conversations.find(
-      (c) =>
-        c.recipients.length === 1 &&
-        c.recipients[0] === `did:pkh:${recipient.toString()}`
+      (c) => c.peerAddress.toLowerCase() === recipient.address.toLowerCase()
     );
     if (!recipientConversation) return null;
-    return recipientConversation.stream_id as string;
+    return recipientConversation;
   }
 
   private _getAuthSig() {
@@ -246,5 +231,33 @@ export class LigoClient {
       console.log("User not authenticated to Lit Protocol for messages");
       throw new Error("User not authenticated to Lit Protocol for messages");
     }
+  }
+
+  private _generateAccessControlConditions(recipient: AccountId) {
+    return [
+      {
+        contractAddress: "",
+        standardContractType: "",
+        chain: "ethereum",
+        method: "",
+        parameters: [":userAddress"],
+        returnValueTest: {
+          comparator: "=",
+          value: recipient.address,
+        },
+      },
+      { operator: "or" },
+      {
+        contractAddress: "",
+        standardContractType: "",
+        chain: "ethereum",
+        method: "",
+        parameters: [":userAddress"],
+        returnValueTest: {
+          comparator: "=",
+          value: this.#account.address,
+        },
+      },
+    ];
   }
 }

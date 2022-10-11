@@ -10,6 +10,7 @@ import { Crypto } from "@peculiar/webcrypto";
 import { Blob, FileReader } from "vblob";
 import { JWE } from "did-jwt";
 import { CID } from "multiformats/cid";
+import LitJsSdk from "@lit-protocol/sdk-nodejs";
 
 class StubAgreementStorageProvider implements AgreementStorageProvider {
   async storeAgreement(encryptedAgreement: JWE): Promise<CID> {
@@ -104,7 +105,13 @@ describe("LigoClient", () => {
       address: wallet.address,
       chainId: `eip155:1`,
     });
-    const client = new LigoClient(provider, account, storageProvider);
+    const client = new LigoClient(
+      provider,
+      wallet,
+      account,
+      storageProvider,
+      LitJsSdk
+    );
     await client.connect({ domain: "localhost" });
 
     return { client, account };
@@ -129,7 +136,7 @@ describe("LigoClient", () => {
     test("send agreement", async () => {
       const { client } = await buildAndConnectClient();
       const recipient = new AccountId({
-        address: "0x4b0bfe4b52e18b4f9d4c702ba7167829b91fcc63",
+        address: "0x4B0bfE4B52e18B4F9d4C702bA7167829B91FCc63",
         chainId: `eip155:420`,
       });
 
@@ -142,20 +149,23 @@ describe("LigoClient", () => {
 
   describe("getOfferResponses", () => {
     test("get offer response", async () => {
-      const { client: client1 } = await buildAndConnectClient();
-
       const wallet2 = EthereumWallet.createRandom();
       const account2 = new AccountId({
         address: wallet2.address,
         chainId: `eip155:1`,
       });
 
+      await buildAndConnectClient(wallet2);
+      global.localStorage.clear();
+      const { client: client1 } = await buildAndConnectClient();
+
       const jws = await client1.signAgreement(agreement);
-      const cid1 = await client1.sendAgreement(jws, account2);
+      await client1.sendAgreement(jws, account2);
 
       global.localStorage.clear();
       const { client: client2 } = await buildAndConnectClient(wallet2);
-      await client2.getOfferResponses();
+      const offerResponses = await client2.getOfferResponses();
+      expect(offerResponses).toHaveLength(1);
     }, 30000);
   });
 });
