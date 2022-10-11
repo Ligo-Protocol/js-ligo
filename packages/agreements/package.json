@@ -32,7 +32,7 @@
     "dag-jose": "^2.0.1",
     "dag-jose-utils": "^2.0.0",
     "did-jwt": "^6.8.0",
-    "dids": "^3.2.0",
+    "dids": "^3.4.0",
     "eslint": "^6.0.0",
     "ipfs-core": "^0.16.0",
     "ipfs-core-types": "^0.12.0",
