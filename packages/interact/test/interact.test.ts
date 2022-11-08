@@ -13,7 +13,6 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { Bootstrap } from "@libp2p/bootstrap";
 
 async function createDID() {
   const seed = randomBytes(32);
@@ -52,26 +51,16 @@ describe("LigoInteractions", () => {
   };
 
   async function buildInteractions() {
-    const [waku1, waku2] = await Promise.all([
-      createPrivacyNode({
-        staticNoiseKey: NOISE_KEY_1,
-      }).then((waku) => waku.start().then(() => waku)),
-      createPrivacyNode({
-        staticNoiseKey: NOISE_KEY_2,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      }).then((waku) => waku.start().then(() => waku)),
-    ]);
-    waku1.addPeerToAddressBook(
-      waku2.libp2p.peerId,
-      waku2.libp2p.getMultiaddrs()
-    );
-    await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay]),
-    ]);
+    const waku1 = await createFullNode({
+      staticNoiseKey: NOISE_KEY_1,
+    }).then((waku) => waku.start().then(() => waku));
 
-    console.log(waku1.libp2p.getPeers());
-    console.log(waku2.libp2p.getPeers());
+    const testNodes = getPredefinedBootstrapNodes(Fleet.Test);
+    waku1.addPeerToAddressBook(testNodes[0].getPeerId(), testNodes);
+    await waku1.dial(testNodes[0], [Protocols.Relay, Protocols.Store]);
+    await Promise.all([
+      waitForRemotePeer(waku1, [Protocols.Relay, Protocols.Store]),
+    ]);
 
     const interactions = new LigoInteractions(waku1);
 
@@ -86,8 +75,13 @@ describe("LigoInteractions", () => {
 
       const signedAgreement = await signer.signRawAgreement(agreement);
       await interactions.respondToOffer(signedAgreement);
+    }, 30000);
+  });
 
-      // await interactions.getOfferResponses();
+  describe("getOfferResponses", () => {
+    test.only("should get messages", async () => {
+      const { interactions } = await buildInteractions();
+      await interactions.getOfferResponses();
     }, 30000);
   });
 });

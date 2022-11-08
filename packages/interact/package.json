@@ -56,7 +56,6 @@
     }
   },
   "devDependencies": {
-    "@libp2p/bootstrap": "^5.0.0",
     "@typescript-eslint/parser": "^4.9.1",
     "@waku/create": "^0.0.3",
     "did-jwt": "^6.8.0",

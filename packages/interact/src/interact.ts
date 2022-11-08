@@ -11,14 +11,13 @@ import { CarBufferWriter } from "@ipld/car";
 import { base64, base64url } from "multiformats/bases/base64";
 import { getResolver as keyDidResolver } from "key-did-resolver";
 import { DIDResolverPlugin } from "@veramo/did-resolver";
-import { DIDComm, IDIDComm } from "@veramo/did-comm";
+import { DIDComm, IDIDComm, IUnpackedDIDCommMessage } from "@veramo/did-comm";
 import { Resolver } from "did-resolver";
 import { createAgent, IResolver, TAgent } from "@veramo/core";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as Block from "multiformats/block";
 import * as dagJose from "dag-jose";
 import * as json from "multiformats/codecs/json";
-
 export const CONTENT_TOPIC = "/ligo/1/offerresponse/proto";
 
 enum MessageType {
@@ -120,17 +119,21 @@ export class LigoInteractions {
    */
   async getOfferResponses() {
     // Fetch from Waku store
-    const wakuMessages: MessageV0[] = [];
+    const messages: IUnpackedDIDCommMessage[] = [];
     await this.#waku.store?.queryCallbackOnPromise(
       [this.#wakuDecoder],
       async (msgP) => {
         const msg = await msgP;
-        if (msg) {
-          wakuMessages.push(msg);
+        if (msg?.payload) {
+          const payload = json.decode(msg.payload);
+          const unpackedMsg = await this.#veramoAgent.unpackDIDCommMessage({
+            message: JSON.stringify(payload),
+          });
+          messages.push(unpackedMsg);
         }
       }
     );
 
-    console.log(wakuMessages);
+    console.log(messages);
   }
 }
