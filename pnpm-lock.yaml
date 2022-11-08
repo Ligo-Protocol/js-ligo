@@ -151,6 +151,7 @@ importers:
       '@ipld/car': ^4.1.5
       '@js-ligo/agreements': workspace:^0.1.0
       '@js-ligo/vocab': workspace:^0.1.0
+      '@libp2p/bootstrap': ^5.0.0
       '@stablelib/random': ^1.0.2
       '@typescript-eslint/parser': ^4.9.1
       '@veramo/core': ^4.1.1
@@ -186,6 +187,7 @@ importers:
       key-did-resolver: 2.1.2
       multiformats: 9.9.0
     devDependencies:
+      '@libp2p/bootstrap': 5.0.0
       '@typescript-eslint/parser': 4.33.0_ka3v2sz4nenxxmg4373y7syisy
       '@waku/create': 0.0.3
       did-jwt: 6.8.0
@@ -1800,6 +1802,23 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - undici
+
+  /@libp2p/bootstrap/5.0.0:
+    resolution: {integrity: sha512-3r20rD2coW0k6j7C7EBfRPh3vaUKVKcTmMksesn7ybcNezu8ziEHxZx93BBwnw8sy+ZwSfnUsK/vOtiGWJPAhw==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
+    dependencies:
+      '@libp2p/interface-peer-discovery': 1.0.1
+      '@libp2p/interface-peer-info': 1.0.3
+      '@libp2p/interface-peer-store': 1.2.2
+      '@libp2p/interfaces': 3.0.3
+      '@libp2p/logger': 2.0.1
+      '@libp2p/peer-id': 1.1.15
+      '@multiformats/mafmt': 11.0.3
+      '@multiformats/multiaddr': 11.0.7
+    transitivePeerDependencies:
+      - supports-color
+      - undici
+    dev: true
 
   /@libp2p/components/2.1.0:
     resolution: {integrity: sha512-9xK1pauZiptaR0eJFn1LcOr/hwosU76IjPOqTkRVZVjSStIWmBl+Njrn4qK05Jizopf0cIUnpt/8A6YWjM4D7g==}

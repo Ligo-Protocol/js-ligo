@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { LigoInteractions, CONTENT_TOPIC } from "../src";
+import { LigoInteractions } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
 import { AgreementSigner } from "@js-ligo/agreements";
 import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
 import { randomBytes } from "@stablelib/random";
-import { createPrivacyNode } from "@waku/create";
+import { createPrivacyNode, createFullNode } from "@waku/create";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { Protocols } from "@waku/interfaces";
-import { DecoderV0 } from "@waku/core/lib/waku_message/version_0";
+import {
+  Fleet,
+  getPredefinedBootstrapNodes,
+} from "@waku/core/lib/predefined_bootstrap_nodes";
+import { Bootstrap } from "@libp2p/bootstrap";
 
 async function createDID() {
   const seed = randomBytes(32);
@@ -49,9 +53,9 @@ describe("LigoInteractions", () => {
 
   async function buildInteractions() {
     const [waku1, waku2] = await Promise.all([
-      createPrivacyNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-        waku.start().then(() => waku)
-      ),
+      createPrivacyNode({
+        staticNoiseKey: NOISE_KEY_1,
+      }).then((waku) => waku.start().then(() => waku)),
       createPrivacyNode({
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
@@ -66,8 +70,8 @@ describe("LigoInteractions", () => {
       waitForRemotePeer(waku2, [Protocols.Relay]),
     ]);
 
-    const decoder = new DecoderV0(CONTENT_TOPIC);
-    waku2.relay.addObserver(decoder, (v) => console.log(v));
+    console.log(waku1.libp2p.getPeers());
+    console.log(waku2.libp2p.getPeers());
 
     const interactions = new LigoInteractions(waku1);
 
@@ -82,6 +86,8 @@ describe("LigoInteractions", () => {
 
       const signedAgreement = await signer.signRawAgreement(agreement);
       await interactions.respondToOffer(signedAgreement);
+
+      // await interactions.getOfferResponses();
     }, 30000);
   });
 });

@@ -1,8 +1,12 @@
 import { AgreementEncrypter } from "@js-ligo/agreements";
 import { DagJWS } from "dids";
 import { randomBytes } from "@stablelib/random";
-import { Waku, Encoder } from "@waku/interfaces";
-import { EncoderV0, MessageV0 } from "@waku/core/lib/waku_message/version_0";
+import { Waku, Encoder, Decoder } from "@waku/interfaces";
+import {
+  EncoderV0,
+  DecoderV0,
+  MessageV0,
+} from "@waku/core/lib/waku_message/version_0";
 import { CarBufferWriter } from "@ipld/car";
 import { base64, base64url } from "multiformats/bases/base64";
 import { getResolver as keyDidResolver } from "key-did-resolver";
@@ -29,6 +33,7 @@ interface ResponseToOffer {
 export class LigoInteractions {
   #waku: Waku;
   #wakuEncoder: Encoder;
+  #wakuDecoder: Decoder<MessageV0>;
   #veramoAgent: TAgent<IResolver & IDIDComm> = createAgent<
     IResolver & IDIDComm
   >({
@@ -45,7 +50,9 @@ export class LigoInteractions {
   constructor(waku: Waku) {
     this.#waku = waku;
     this.#wakuEncoder = new EncoderV0(CONTENT_TOPIC);
+    this.#wakuDecoder = new DecoderV0(CONTENT_TOPIC);
   }
+
   /**
    * Respond to an offer
    *
@@ -104,5 +111,26 @@ export class LigoInteractions {
       payload: json.encode(JSON.parse(packed.message)),
     };
     await this.#waku.relay?.send(this.#wakuEncoder, new MessageV0(wakuMessage));
+  }
+
+  /**
+   * Get offer responses
+   *
+   * Gets offer response from Waku store
+   */
+  async getOfferResponses() {
+    // Fetch from Waku store
+    const wakuMessages: MessageV0[] = [];
+    await this.#waku.store?.queryCallbackOnPromise(
+      [this.#wakuDecoder],
+      async (msgP) => {
+        const msg = await msgP;
+        if (msg) {
+          wakuMessages.push(msg);
+        }
+      }
+    );
+
+    console.log(wakuMessages);
   }
 }
