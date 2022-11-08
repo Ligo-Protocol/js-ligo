@@ -15,7 +15,7 @@ import * as Block from "multiformats/block";
 import * as dagJose from "dag-jose";
 import * as json from "multiformats/codecs/json";
 
-const CONTENT_TOPIC = "/ligo/1/offerresponse/proto";
+export const CONTENT_TOPIC = "/ligo/1/offerresponse/proto";
 
 enum MessageType {
   ResponseToOffer = "https://ligo.dev/didcomm/ResponseToOffer",
