@@ -15,17 +15,14 @@ export class AgreementEncrypter {
     this.#key = key;
   }
   async encryptAgreement(
-    signedAgreement: DagJWS,
-    encryptedSymmetricKey: string
+    signedAgreement: DagJWS
   ): Promise<JWE> {
     // 1. Prepare cleartext
     const dirEncrypter = xc20pDirEncrypter(this.#key);
     const cleartext = await prepareCleartext(signedAgreement);
 
-    // 2. Encrypt + add encrypted key to protected header
-    const jwe = await createJWE(cleartext, [dirEncrypter], {
-      encryptedSymmetricKey,
-    });
+    // 2. Encrypt
+    const jwe = await createJWE(cleartext, [dirEncrypter]);
 
     return jwe;
   }

@@ -31,8 +31,7 @@ describe("encryption", () => {
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const encryptedSymmetricKey = u8a.toString(key, "base64pad"); // Just store unencrypted key to show that header works. Should actually be an encrypted Lit key
-    const jwe = await encrypter.encryptAgreement(jws, encryptedSymmetricKey);
+    const jwe = await encrypter.encryptAgreement(jws);
     expect(jwe).toBeDefined();
   }, 30000);
 
@@ -45,8 +44,7 @@ describe("encryption", () => {
 
     const jws = await signer.signRawAgreement(agreement);
 
-    const encryptedSymmetricKey = u8a.toString(key, "base64pad"); // Just store unencrypted key to show that header works. Should actually be an encrypted Lit key
-    const jwe = await encrypter.encryptAgreement(jws, encryptedSymmetricKey);
+    const jwe = await encrypter.encryptAgreement(jws);
 
     const decryptedJWS = await encrypter.decryptAgreement(jwe);
     expect(decryptedJWS).toStrictEqual(jws);
