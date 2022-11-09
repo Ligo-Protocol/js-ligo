@@ -6,7 +6,7 @@ import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
 import { randomBytes } from "@stablelib/random";
-import { createPrivacyNode, createFullNode } from "@waku/create";
+import { createFullNode } from "@waku/create";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -68,18 +68,23 @@ describe("LigoInteractions", () => {
   }
 
   describe("respondToOffer", () => {
-    test("should send message", async () => {
+    test.only("should send message", async () => {
       const { interactions } = await buildInteractions();
-      const did = await createDID();
-      const signer = new AgreementSigner(did);
+      const didA = await createDID();
+      const didB = await createDID();
+      const signer = new AgreementSigner(didA);
 
       const signedAgreement = await signer.signRawAgreement(agreement);
-      await interactions.respondToOffer(signedAgreement);
+      await interactions.respondToOffer(
+        "ceramic://id",
+        didB.id,
+        signedAgreement
+      );
     }, 30000);
   });
 
   describe("getOfferResponses", () => {
-    test.only("should get messages", async () => {
+    test("should get messages", async () => {
       const { interactions } = await buildInteractions();
       await interactions.getOfferResponses();
     }, 30000);

@@ -8,26 +8,38 @@ import {
   MessageV0,
 } from "@waku/core/lib/waku_message/version_0";
 import { CarBufferWriter } from "@ipld/car";
+import { CarReader } from "@ipld/car/reader";
 import { base64, base64url } from "multiformats/bases/base64";
 import { getResolver as keyDidResolver } from "key-did-resolver";
 import { DIDResolverPlugin } from "@veramo/did-resolver";
 import { DIDComm, IDIDComm, IUnpackedDIDCommMessage } from "@veramo/did-comm";
 import { Resolver } from "did-resolver";
 import { createAgent, IResolver, TAgent } from "@veramo/core";
+import { CID } from "multiformats";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as Block from "multiformats/block";
 import * as dagJose from "dag-jose";
 import * as json from "multiformats/codecs/json";
+import { JWE } from "did-jwt";
+
 export const CONTENT_TOPIC = "/ligo/1/offerresponse/proto";
 
 enum MessageType {
   ResponseToOffer = "https://ligo.dev/didcomm/ResponseToOffer",
 }
 
-interface ResponseToOffer {
+type ResponseToOffer = {
   offer: string;
   agreementKey: string;
-}
+};
+
+type Attachment = {
+  id: string;
+  description: string;
+  data: {
+    base64: string;
+  };
+};
 
 export class LigoInteractions {
   #waku: Waku;
@@ -57,7 +69,11 @@ export class LigoInteractions {
    *
    * Sends a ResponseToOffer message to seller
    */
-  async respondToOffer(signedAgreement: DagJWS) {
+  async respondToOffer(
+    offerId: string,
+    offerSellerDid: string,
+    signedAgreement: DagJWS
+  ) {
     const symmetricKey = randomBytes(32);
     const agreementEncrypter = new AgreementEncrypter(symmetricKey);
     const encryptedAgreement = await agreementEncrypter.encryptAgreement(
@@ -79,10 +95,10 @@ export class LigoInteractions {
 
     // Create message
     const msg: ResponseToOffer = {
-      offer: block.cid.toString(),
+      offer: offerId,
       agreementKey: base64.encode(symmetricKey),
     };
-    const attachment = {
+    const attachment: Attachment = {
       id: block.cid.toString(),
       description: "A LigoAgreement",
       data: {
@@ -93,7 +109,7 @@ export class LigoInteractions {
       id: "1234567890",
       type: MessageType.ResponseToOffer,
       from: "did:example:alice",
-      to: "did:example:bob",
+      to: offerSellerDid,
       created_time: (new Date().getTime() / 1000).toString(),
       body: msg,
       attachments: [attachment],
@@ -102,7 +118,7 @@ export class LigoInteractions {
     // Pack message
     const packed = await this.#veramoAgent.packDIDCommMessage({
       message: didCommMsg,
-      packing: "none",
+      packing: "authcrypt",
     });
 
     // Send message
@@ -134,6 +150,39 @@ export class LigoInteractions {
       }
     );
 
-    console.log(messages);
+    const offerResponses = messages.filter(
+      (unpackedMsg) => unpackedMsg.message.type == MessageType.ResponseToOffer
+    );
+
+    const agreements = await Promise.all(
+      offerResponses.map(async (msg) => {
+        const body = msg.message.body as ResponseToOffer;
+        const attachment = (msg.message as any).attachments[0] as Attachment;
+        const reader = await CarReader.fromBytes(
+          base64url.decode(attachment.data.base64)
+        );
+
+        const cid = CID.parse(attachment.id);
+        const block = await reader.get(cid);
+        const decodedBlock = block
+          ? await Block.create({
+              bytes: block.bytes,
+              cid,
+              codec: dagJose,
+              hasher: sha256,
+            })
+          : undefined;
+
+        const encryptedAgreement = decodedBlock?.value as JWE;
+        const symmetricKey = base64.decode(body.agreementKey);
+        const agreementEncrypter = new AgreementEncrypter(symmetricKey);
+
+        const signedAgreement = await agreementEncrypter.decryptAgreement(
+          encryptedAgreement as JWE
+        );
+        return signedAgreement;
+      })
+    );
+    console.log(agreements);
   }
 }
