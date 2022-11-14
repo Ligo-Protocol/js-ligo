@@ -28,6 +28,7 @@
     "@js-ligo/agreements": "workspace:^0.1.0",
     "@js-ligo/vocab": "workspace:^0.1.0",
     "@stablelib/random": "^1.0.2",
+    "@types/uuid": "^8.3.4",
     "@veramo/core": "^4.1.1",
     "@veramo/did-comm": "^4.1.1",
     "@veramo/did-manager": "^4.1.1",

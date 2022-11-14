@@ -5,7 +5,6 @@ import { AgreementSigner } from "@js-ligo/agreements";
 import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
-import { randomBytes } from "@stablelib/random";
 import { createFullNode } from "@waku/create";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { Protocols } from "@waku/interfaces";
@@ -139,7 +138,7 @@ describe("LigoInteractions", () => {
   });
 
   describe("getOfferResponses", () => {
-    test.only("should get messages", async () => {
+    test("should get messages", async () => {
       const { interactions } = await buildInteractions();
       await interactions.getOfferResponses();
     }, 30000);

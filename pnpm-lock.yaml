@@ -152,6 +152,7 @@ importers:
       '@js-ligo/agreements': workspace:^0.1.0
       '@js-ligo/vocab': workspace:^0.1.0
       '@stablelib/random': ^1.0.2
+      '@types/uuid': ^8.3.4
       '@typescript-eslint/parser': ^4.9.1
       '@veramo/core': ^4.1.1
       '@veramo/did-comm': ^4.1.1
@@ -180,6 +181,7 @@ importers:
       '@js-ligo/agreements': link:../agreements
       '@js-ligo/vocab': link:../vocab
       '@stablelib/random': 1.0.2
+      '@types/uuid': 8.3.4
       '@veramo/core': 4.1.1
       '@veramo/did-comm': 4.1.1
       '@veramo/did-manager': 4.1.1
@@ -4010,6 +4012,10 @@ packages:
   /@types/tmp/0.0.33:
     resolution: {integrity: sha512-gVC1InwyVrO326wbBZw+AO3u2vRXz/iRWq9jYhpG4W8LXyIgDv3ZmcLQ5Q4Gs+gFMyqx+viFoFT+l3p61QFCmQ==}
     dev: true
+
+  /@types/uuid/8.3.4:
+    resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
+    dev: false
 
   /@types/yargs-parser/21.0.0:
     resolution: {integrity: sha512-iO9ZQHkZxHn4mSakYV0vFHAVDyEOIJQrV2uZ06HxEPcx+mt8swXoZHIbaaJ2crJYFfErySgktuTZ3BeLz+XmFA==}
