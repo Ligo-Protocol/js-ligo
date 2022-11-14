@@ -13,9 +13,28 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { getResolver as keyDidResolver } from "key-did-resolver";
+import { DIDResolverPlugin } from "@veramo/did-resolver";
+import { DIDComm, IDIDComm } from "@veramo/did-comm";
+import { Resolver } from "did-resolver";
+import { createAgent, IResolver, IKeyManager, IDIDManager } from "@veramo/core";
+import { DIDManager, MemoryDIDStore } from "@veramo/did-manager";
+import { KeyDIDProvider } from "@veramo/did-provider-key";
+import {
+  KeyManager,
+  MemoryKeyStore,
+  MemoryPrivateKeyStore,
+} from "@veramo/key-manager";
+import { KeyManagementSystem } from "@veramo/kms-local";
+import { base64 } from "multiformats/bases/base64";
+import { base16 } from "multiformats/bases/base16";
 
-async function createDID() {
-  const seed = randomBytes(32);
+const SEED_A = "mGqEJyPzOv065BYm7fppSAkMZncdrfw84q+vb880kCS4";
+const DID_B = "did:key:z6MkonTpPJpn82FfGu4gebWHkMEn9fn5uCjhSE74d11QxK3Q";
+const SEED_B_HEX =
+  "a81641714f491d480a5eb9a5afd30d62d1bf47a817287a3e5ebfc32e15d5ecb88aa4875950792249aac668589d07b90455726a9c920e463cc0cc9f032630ad1b";
+
+async function createDID(seed: Uint8Array) {
   const provider = new Ed25519Provider(seed);
   const did = new DID({ provider, resolver: getResolver() });
   await did.authenticate();
@@ -62,29 +81,65 @@ describe("LigoInteractions", () => {
       waitForRemotePeer(waku1, [Protocols.Relay, Protocols.Store]),
     ]);
 
-    const interactions = new LigoInteractions(waku1);
+    const keyStore = new MemoryPrivateKeyStore();
+    const veramoAgent = createAgent<
+      IResolver & IDIDComm & IDIDManager & IKeyManager
+    >({
+      plugins: [
+        new KeyManager({
+          store: new MemoryKeyStore(),
+          kms: {
+            local: new KeyManagementSystem(keyStore),
+          },
+        }),
+        new DIDResolverPlugin({
+          resolver: new Resolver({
+            ...keyDidResolver(),
+          }),
+        }),
+        new DIDComm([]),
+        new DIDManager({
+          store: new MemoryDIDStore(),
+          defaultProvider: "did:key",
+          providers: {
+            "did:key": new KeyDIDProvider({
+              defaultKms: "local",
+            }),
+          },
+        }),
+      ],
+    });
+
+    await veramoAgent.didManagerImport({
+      did: DID_B,
+      provider: "did:key",
+      keys: [
+        {
+          privateKeyHex: SEED_B_HEX,
+          type: "Ed25519",
+          kms: "local",
+        },
+      ],
+    });
+
+    const interactions = new LigoInteractions(waku1, veramoAgent);
 
     return { interactions };
   }
 
   describe("respondToOffer", () => {
-    test.only("should send message", async () => {
+    test("should send message", async () => {
       const { interactions } = await buildInteractions();
-      const didA = await createDID();
-      const didB = await createDID();
+      const didA = await createDID(base64.decode(SEED_A));
       const signer = new AgreementSigner(didA);
 
       const signedAgreement = await signer.signRawAgreement(agreement);
-      await interactions.respondToOffer(
-        "ceramic://id",
-        didB.id,
-        signedAgreement
-      );
+      await interactions.respondToOffer("ceramic://id", DID_B, signedAgreement);
     }, 30000);
   });
 
   describe("getOfferResponses", () => {
-    test("should get messages", async () => {
+    test.only("should get messages", async () => {
       const { interactions } = await buildInteractions();
       await interactions.getOfferResponses();
     }, 30000);

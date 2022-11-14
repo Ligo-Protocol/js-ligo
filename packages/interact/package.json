@@ -41,7 +41,8 @@
     "did-resolver": "^4.0.1",
     "dids": "^3.4.0",
     "key-did-resolver": "^2.0.5",
-    "multiformats": "^9.9.0"
+    "multiformats": "^9.9.0",
+    "uuid": "^9.0.0"
   },
   "jest": {
     "extensionsToTreatAsEsm": [
