@@ -1,5 +1,5 @@
 {
-  "name": "@js-ligo/agreements",
+  "name": "@js-ligo/interact",
   "version": "0.2.0",
   "description": "",
   "type": "module",
@@ -16,9 +16,8 @@
     "build:js": "swc src -d ./dist --config-file ../../.swcrc",
     "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
     "build": "pnpm build:clean && pnpm build:types && pnpm build:js",
+    "test:it": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "lint": "eslint src/* test/* --fix",
-    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
-    "test:ci": "pnpm run test --ci --coverage",
     "prepare": "pnpm build"
   },
   "keywords": [],
@@ -26,27 +25,25 @@
   "license": "MIT",
   "dependencies": {
     "@ipld/car": "^4.1.5",
-    "@ipld/dag-pb": "^2.1.18",
+    "@js-ligo/agreements": "workspace:^0.2.0",
     "@js-ligo/vocab": "workspace:^0.2.0",
-    "@typescript-eslint/parser": "^4.9.1",
-    "dag-jose": "^2.0.1",
-    "dag-jose-utils": "^2.0.0",
-    "did-jwt": "^6.8.0",
-    "dids": "^3.4.0",
-    "eslint": "^6.0.0",
-    "ipfs-core": "^0.16.0",
-    "ipfs-core-types": "^0.12.0",
-    "multiformats": "^9.9.0",
-    "node-fetch": "*",
-    "typescript": "^4.7.4",
-    "uint8arrays": "^3.1.0",
-    "undici": "*",
-    "web3.storage": "^4.4.0"
-  },
-  "devDependencies": {
     "@stablelib/random": "^1.0.2",
-    "key-did-provider-ed25519": "^2.0.0",
-    "key-did-resolver": "^2.0.5"
+    "@types/uuid": "^8.3.4",
+    "@veramo/core": "^4.1.1",
+    "@veramo/did-comm": "^4.1.1",
+    "@veramo/did-manager": "^4.1.1",
+    "@veramo/did-provider-key": "^4.1.1",
+    "@veramo/did-resolver": "^4.1.1",
+    "@veramo/key-manager": "^4.1.1",
+    "@veramo/kms-local": "^4.1.1",
+    "@waku/core": "^0.0.3",
+    "@waku/interfaces": "^0.0.2",
+    "dag-jose": "^3.0.1",
+    "did-resolver": "^4.0.1",
+    "dids": "^3.4.0",
+    "key-did-resolver": "^2.0.5",
+    "multiformats": "^9.9.0",
+    "uuid": "^9.0.0"
   },
   "jest": {
     "extensionsToTreatAsEsm": [
@@ -63,5 +60,15 @@
         }
       ]
     }
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^4.9.1",
+    "@waku/create": "^0.0.3",
+    "did-jwt": "^6.8.0",
+    "eslint": "^6.0.0",
+    "jest-environment-node": "^29.0.3",
+    "key-did-provider-ed25519": "^2.0.0",
+    "node-fetch": "*",
+    "typescript": "^4.7.4"
   }
 }

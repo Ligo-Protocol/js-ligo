@@ -17,9 +17,10 @@ This monorepo uses [pnpm](https://pnpm.io/), make sure to install it first if yo
 
 ## Packages
 
-| Name                                 | Description                                                                                      | Version |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------ | ------- |
-| [`@js-ligo/vocab`](./packages/vocab) | Typescript implementation of the [Ligo Vocabulary](https://github.com/Ligo-Protocol/ligo-vocab). |         |
+| Name                                   | Description                                                                                      | Version |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ | ------- |
+| [`@js-ligo/client`](./packages/client) | Main client                                                                                      |         |
+| [`@js-ligo/vocab`](./packages/vocab)   | Typescript implementation of the [Ligo Vocabulary](https://github.com/Ligo-Protocol/ligo-vocab). |         |
 
 ## License
 

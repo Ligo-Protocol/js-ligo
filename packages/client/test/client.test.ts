@@ -1,57 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LigoClient } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
-import { AgreementStorageProvider } from "@js-ligo/agreements";
-import { Wallet as EthereumWallet } from "@ethersproject/wallet";
 import { AccountId } from "caip";
-import { EventEmitter } from "events";
-import { fromString, toString } from "uint8arrays";
 import { Crypto } from "@peculiar/webcrypto";
 import { Blob, FileReader } from "vblob";
-import { JWE } from "did-jwt";
-import { CID } from "multiformats/cid";
-import LitJsSdk from "@lit-protocol/sdk-nodejs";
+import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
+import ethProvider from "eth-provider";
+import { createFullNode } from "@waku/create";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { Protocols } from "@waku/interfaces";
+import {
+  Fleet,
+  getPredefinedBootstrapNodes,
+} from "@waku/core/lib/predefined_bootstrap_nodes";
+import { readFile, writeFile } from "fs/promises";
+import { VeramoJsonStore, VeramoJsonCache } from "@veramo/data-store-json";
 
-class StubAgreementStorageProvider implements AgreementStorageProvider {
-  async storeAgreement(encryptedAgreement: JWE): Promise<CID> {
-    console.log(encryptedAgreement);
-    return CID.parse("bafyqacnbmrqxgzdgdeaui");
-  }
-  async fetchAgreement(_: CID): Promise<JWE> {
-    throw new Error("Not implemented");
-  }
-}
-class EthereumProvider extends EventEmitter {
-  wallet: EthereumWallet;
-
-  constructor(wallet: EthereumWallet) {
-    super();
-    this.wallet = wallet;
-  }
-
-  send(
-    request: { method: string; params: Array<any> },
-    callback: (err: Error | null | undefined, res?: any) => void
-  ): void {
-    if (request.method === "eth_chainId") {
-      callback(null, { result: "1" });
-    } else if (request.method === "personal_sign") {
-      let message = request.params[0] as string;
-      if (message.startsWith("0x")) {
-        message = toString(fromString(message.slice(2), "base16"), "utf8");
-      }
-      callback(null, { result: this.wallet.signMessage(message) });
-    } else if (request.method === "eth_accounts") {
-      callback(null, { result: [this.wallet.address] });
-    } else {
-      callback(new Error(`Unsupported method: ${request.method}`));
-    }
-  }
-
-  enable() {
-    return [this.wallet.address];
-  }
-}
+const DID_B = "did:ethr:goerli:0xE9976B324098dC194399f445cDbd989Bc42B4da7";
+const KMS_SECRET_KEY =
+  "8842bddaf538d0beb69f516d1f66a08084b8e87a9d1f44b6ab0fe23cd8f44b67";
 
 class LocalStorageMock {
   store: Record<any, any>;
@@ -91,34 +58,73 @@ globalThis.location = {
 } as unknown as Location;
 
 describe("LigoClient", () => {
+  let dataStore: VeramoJsonStore;
+
   const agreement: LigoAgreement = {
     order: {
       "@id": "ipfs://fake",
     },
   };
 
-  async function buildAndConnectClient(_wallet?: EthereumWallet) {
-    const wallet = _wallet ?? EthereumWallet.createRandom();
-    const provider = new EthereumProvider(wallet);
-    const storageProvider = new StubAgreementStorageProvider();
+  async function buildAndConnectClient() {
+    const provider = ethProvider() as ExternalProvider;
+    const web3Provider = new Web3Provider(provider);
     const account = new AccountId({
-      address: wallet.address,
+      address: (await web3Provider.listAccounts())[0],
       chainId: `eip155:1`,
     });
-    const client = new LigoClient(
-      provider,
-      wallet,
-      account,
-      storageProvider,
-      LitJsSdk
+
+    const waku1 = await createFullNode().then((waku) =>
+      waku.start().then(() => waku)
     );
-    await client.connect({ domain: "localhost" });
+
+    const testNodes = getPredefinedBootstrapNodes(Fleet.Test);
+    waku1.addPeerToAddressBook(testNodes[0].getPeerId(), testNodes);
+    await waku1.dial(testNodes[0], [Protocols.Relay, Protocols.Store]);
+    await Promise.all([
+      waitForRemotePeer(waku1, [Protocols.Relay, Protocols.Store]),
+    ]);
+
+    try {
+      dataStore = {
+        notifyUpdate: async (
+          _oldState: VeramoJsonCache,
+          _newState: VeramoJsonCache
+        ) => {
+          return;
+        },
+        ...(JSON.parse(
+          (await readFile("./test/test-datastore.json")).toString("utf8")
+        ) as VeramoJsonStore),
+      };
+    } catch (e) {
+      dataStore = {
+        notifyUpdate: async (
+          _oldState: VeramoJsonCache,
+          _newState: VeramoJsonCache
+        ) => {
+          return;
+        },
+      };
+    }
+
+    const client = new LigoClient(provider, account);
+    await client.connect(
+      { domain: "localhost" },
+      KMS_SECRET_KEY,
+      dataStore,
+      waku1
+    );
 
     return { client, account };
   }
 
   beforeEach(() => {
     global.localStorage.clear();
+  });
+
+  afterEach(async () => {
+    await writeFile("./test/test-datastore.json", JSON.stringify(dataStore));
   });
 
   describe("signAgreement", () => {
@@ -132,39 +138,21 @@ describe("LigoClient", () => {
     }, 30000);
   });
 
-  describe("sendAgreement", () => {
+  describe("proposeAgreement", () => {
     test("send agreement", async () => {
       const { client } = await buildAndConnectClient();
-      const recipient = new AccountId({
-        address: "0x4B0bfE4B52e18B4F9d4C702bA7167829B91FCc63",
-        chainId: `eip155:420`,
-      });
-
-      const jws = await client.signAgreement(agreement);
-      const cid = await client.sendAgreement(jws, recipient);
-
-      expect(cid).toBeDefined();
+      await client.proposeAgreement("ceramic://id", DID_B, agreement);
     }, 30000);
   });
 
-  describe("getOfferResponses", () => {
-    test("get offer response", async () => {
-      const wallet2 = EthereumWallet.createRandom();
-      const account2 = new AccountId({
-        address: wallet2.address,
-        chainId: `eip155:1`,
-      });
+  describe("getProposedAgreements", () => {
+    test("get proposed agreements", async () => {
+      const { client } = await buildAndConnectClient();
 
-      await buildAndConnectClient(wallet2);
-      global.localStorage.clear();
-      const { client: client1 } = await buildAndConnectClient();
-
-      const jws = await client1.signAgreement(agreement);
-      await client1.sendAgreement(jws, account2);
-
-      global.localStorage.clear();
-      const { client: client2 } = await buildAndConnectClient(wallet2);
-      const offerResponses = await client2.getOfferResponses();
+      const offerResponses = await client.getProposedAgreements([
+        "ceramic://id",
+      ]);
+      console.log(offerResponses);
       expect(offerResponses).toHaveLength(1);
     }, 30000);
   });
