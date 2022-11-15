@@ -137,9 +137,12 @@ describe("LigoInteractions", () => {
   });
 
   describe("getOfferResponses", () => {
-    test("should get messages", async () => {
+    test.only("should get messages", async () => {
       const { interactions } = await buildInteractions();
-      await interactions.getSignedOfferResponses();
+      const offerResponses = await interactions.getSignedOfferResponses([
+        "ceramic://id",
+      ]);
+      console.log(offerResponses);
     }, 30000);
   });
 });

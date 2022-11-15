@@ -11,7 +11,7 @@ import { CarBufferWriter } from "@ipld/car";
 import { CarReader } from "@ipld/car/reader";
 import { base64, base64url } from "multiformats/bases/base64";
 import { IDIDComm, IUnpackedDIDCommMessage } from "@veramo/did-comm";
-import { IResolver, TAgent, IDIDManager } from "@veramo/core";
+import { IResolver, TAgent, IDIDManager, IIdentifier } from "@veramo/core";
 import { CID } from "multiformats";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as Block from "multiformats/block";
@@ -19,8 +19,6 @@ import * as dagJose from "dag-jose";
 import * as json from "multiformats/codecs/json";
 import { JWE } from "did-jwt";
 import { v4 as uuidv4 } from "uuid";
-
-export const CONTENT_TOPIC = "/ligo/1/offerresponse/proto";
 
 enum MessageType {
   ResponseToOffer = "https://ligo.dev/didcomm/ResponseToOffer",
@@ -41,8 +39,6 @@ type Attachment = {
 
 export class LigoInteractions {
   #waku: Waku;
-  #wakuEncoder: Encoder;
-  #wakuDecoder: Decoder<MessageV0>;
   #veramoAgent: TAgent<IResolver & IDIDComm & IDIDManager>;
 
   constructor(
@@ -50,8 +46,6 @@ export class LigoInteractions {
     veramoAgent: TAgent<IResolver & IDIDComm & IDIDManager>
   ) {
     this.#waku = waku;
-    this.#wakuEncoder = new EncoderV0(CONTENT_TOPIC);
-    this.#wakuDecoder = new DecoderV0(CONTENT_TOPIC);
     this.#veramoAgent = veramoAgent;
   }
 
@@ -65,6 +59,7 @@ export class LigoInteractions {
     offerSellerDid: string,
     signedAgreement: DagJWS
   ) {
+    // Get Idenfier
     const identifiers = await this.#veramoAgent.didManagerFind();
     if (identifiers.length === 0) {
       throw new Error("No identifiers found");
@@ -119,10 +114,13 @@ export class LigoInteractions {
     });
 
     // Send message
+    const wakuEncoder = new EncoderV0(
+      LigoInteractions.generateContentTopic(offerId)
+    );
     const wakuMessage = {
       payload: json.encode(JSON.parse(packed.message)),
     };
-    await this.#waku.relay?.send(this.#wakuEncoder, new MessageV0(wakuMessage));
+    await this.#waku.relay?.send(wakuEncoder, new MessageV0(wakuMessage));
   }
 
   /**
@@ -130,17 +128,41 @@ export class LigoInteractions {
    *
    * Gets offer response from Waku store
    */
-  async getSignedOfferResponses(): Promise<DagJWS[]> {
+  async getSignedOfferResponses(
+    offerIds: string[]
+  ): Promise<Record<string, DagJWS[]>> {
     const identifiers = await this.#veramoAgent.didManagerFind();
     if (identifiers.length === 0) {
       throw new Error("No identifiers found");
     }
     const identifier = identifiers[0];
 
+    return (
+      await Promise.all(
+        offerIds.map(async (offerId) => {
+          const offerResponses = await this._getSignedOfferResponses(
+            identifier,
+            offerId
+          );
+          return { [offerId]: offerResponses };
+        })
+      )
+    ).reduce((prev, cur) => {
+      return { ...prev, ...cur };
+    });
+  }
+
+  private async _getSignedOfferResponses(
+    identifier: IIdentifier,
+    offerId: string
+  ) {
     // Fetch from Waku store
+    const wakuDecoder = new DecoderV0(
+      LigoInteractions.generateContentTopic(offerId)
+    );
     const messages: IUnpackedDIDCommMessage[] = [];
     await this.#waku.store?.queryCallbackOnPromise(
-      [this.#wakuDecoder],
+      [wakuDecoder],
       async (msgP) => {
         const msg = await msgP;
         if (msg?.payload) {
@@ -198,5 +220,9 @@ export class LigoInteractions {
       })
     );
     return agreements;
+  }
+
+  private static generateContentTopic(offerId: string): string {
+    return `/ligo/1/offers-${offerId}/proto`;
   }
 }
