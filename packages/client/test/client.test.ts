@@ -138,20 +138,20 @@ describe("LigoClient", () => {
     }, 30000);
   });
 
-  describe("respondToOffer", () => {
+  describe("proposeAgreement", () => {
     test("send agreement", async () => {
       const { client } = await buildAndConnectClient();
-
-      const jws = await client.signAgreement(agreement);
-      await client.respondToOffer("ceramic://id", DID_B, jws);
+      await client.proposeAgreement("ceramic://id", DID_B, agreement);
     }, 30000);
   });
 
-  describe("getOfferResponses", () => {
-    test("get offer response", async () => {
+  describe("getProposedAgreements", () => {
+    test("get proposed agreements", async () => {
       const { client } = await buildAndConnectClient();
 
-      const offerResponses = await client.getOfferResponses(["ceramic://id"]);
+      const offerResponses = await client.getProposedAgreements([
+        "ceramic://id",
+      ]);
       console.log(offerResponses);
       expect(offerResponses).toHaveLength(1);
     }, 30000);

@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LigoInteractions } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
-import { AgreementSigner } from "@js-ligo/agreements";
-import { DID } from "dids";
-import { Ed25519Provider } from "key-did-provider-ed25519";
-import { getResolver } from "key-did-resolver";
 import { createFullNode } from "@waku/create";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { Protocols } from "@waku/interfaces";
@@ -25,20 +21,10 @@ import {
   MemoryPrivateKeyStore,
 } from "@veramo/key-manager";
 import { KeyManagementSystem } from "@veramo/kms-local";
-import { base64 } from "multiformats/bases/base64";
 
-const SEED_A = "mGqEJyPzOv065BYm7fppSAkMZncdrfw84q+vb880kCS4";
 const DID_B = "did:key:z6MkonTpPJpn82FfGu4gebWHkMEn9fn5uCjhSE74d11QxK3Q";
 const SEED_B_HEX =
   "a81641714f491d480a5eb9a5afd30d62d1bf47a817287a3e5ebfc32e15d5ecb88aa4875950792249aac668589d07b90455726a9c920e463cc0cc9f032630ad1b";
-
-async function createDID(seed: Uint8Array) {
-  const provider = new Ed25519Provider(seed);
-  const did = new DID({ provider, resolver: getResolver() });
-  await did.authenticate();
-
-  return did;
-}
 
 export const NOISE_KEY_1 = new Uint8Array(
   ((): number[] => {
@@ -125,21 +111,17 @@ describe("LigoInteractions", () => {
     return { interactions };
   }
 
-  describe("respondToOffer", () => {
+  describe("proposeAgreement", () => {
     test("should send message", async () => {
       const { interactions } = await buildInteractions();
-      const didA = await createDID(base64.decode(SEED_A));
-      const signer = new AgreementSigner(didA);
-
-      const signedAgreement = await signer.signRawAgreement(agreement);
-      await interactions.respondToOffer("ceramic://id", DID_B, signedAgreement);
+      await interactions.proposeAgreement("ceramic://id", DID_B, agreement);
     }, 30000);
   });
 
-  describe("getOfferResponses", () => {
+  describe("getProposedAgreements", () => {
     test.only("should get messages", async () => {
       const { interactions } = await buildInteractions();
-      const offerResponses = await interactions.getSignedOfferResponses([
+      const offerResponses = await interactions.getProposedAgreements([
         "ceramic://id",
       ]);
       console.log(offerResponses);

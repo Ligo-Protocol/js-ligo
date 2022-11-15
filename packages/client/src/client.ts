@@ -85,11 +85,6 @@ function defaultVeramoAgent(
   });
 }
 
-export type OfferResponse = {
-  signedAgreement: DagJWS;
-  verifiedAgreement: LigoAgreement;
-};
-
 export class LigoClient {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   // #litClient: any;
@@ -190,58 +185,30 @@ export class LigoClient {
   /**
    * Respond to an offer by sending a signed agreement
    */
-  async respondToOffer(
+  async proposeAgreement(
     offerId: string,
     offerSellerDid: string,
-    signedAgreement: DagJWS
+    agreement: LigoAgreement
   ): Promise<void> {
     if (!this.#interactions) {
       throw new Error("LigoClient is not connected");
     }
 
-    await this.#interactions.respondToOffer(
+    await this.#interactions.proposeAgreement(
       offerId,
       offerSellerDid,
-      signedAgreement
+      agreement
     );
   }
 
-  async getOfferResponses(
+  async getProposedAgreements(
     offerIds: string[]
-  ): Promise<Record<string, OfferResponse[]>> {
+  ): Promise<Record<string, LigoAgreement[]>> {
     if (!this.#interactions) {
       throw new Error("LigoClient is not connected");
     }
 
-    const signedAgreements = await this.#interactions.getSignedOfferResponses(
-      offerIds
-    );
-
-    const offerResponses = await Promise.all(
-      Object.keys(signedAgreements).map(async (offerId) => {
-        const offerResponses = await Promise.all(
-          signedAgreements[offerId].map(async (signedAgreement) => {
-            if (!this.#agreementSigner) {
-              throw new Error("LigoClient is not connected");
-            }
-
-            const payload = await this.#agreementSigner.verifyAgreement(
-              signedAgreement
-            );
-            return {
-              signedAgreement: signedAgreement,
-              verifiedAgreement: payload,
-            };
-          })
-        );
-
-        return { [offerId]: offerResponses };
-      })
-    );
-
-    return offerResponses.reduce((prev, cur) => {
-      return { ...prev, ...cur };
-    });
+    return await this.#interactions.getProposedAgreements(offerIds);
   }
 
   private async _importSigningKey(

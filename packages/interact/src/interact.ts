@@ -1,5 +1,4 @@
 import { AgreementEncrypter } from "@js-ligo/agreements";
-import { DagJWS } from "dids";
 import { randomBytes } from "@stablelib/random";
 import { Waku } from "@waku/interfaces";
 import {
@@ -19,19 +18,20 @@ import * as dagJose from "dag-jose";
 import * as json from "multiformats/codecs/json";
 import { JWE } from "did-jwt";
 import { v4 as uuidv4 } from "uuid";
+import { LigoAgreement } from "@js-ligo/vocab";
 
 enum MessageType {
-  ResponseToOffer = "https://ligo.dev/didcomm/ResponseToOffer",
+  ProposeAgreement = "https://ligo.dev/didcomm/ProposeAgreement",
 }
 
-type ResponseToOffer = {
+type ProposeAgreement = {
   offer: string;
+  agreementCid: string;
   agreementKey: string;
 };
 
-type Attachment = {
+type CidAttachment = {
   id: string;
-  description: string;
   data: {
     base64: string;
   };
@@ -52,12 +52,12 @@ export class LigoInteractions {
   /**
    * Respond to an offer
    *
-   * Sends a ResponseToOffer message to seller
+   * Sends a ProposeAgreement message to seller
    */
-  async respondToOffer(
+  async proposeAgreement(
     offerId: string,
     offerSellerDid: string,
-    signedAgreement: DagJWS
+    agreement: LigoAgreement
   ) {
     // Get Idenfier
     const identifiers = await this.#veramoAgent.didManagerFind();
@@ -69,7 +69,7 @@ export class LigoInteractions {
     const symmetricKey = randomBytes(32);
     const agreementEncrypter = new AgreementEncrypter(symmetricKey);
     const encryptedAgreement = await agreementEncrypter.encryptAgreement(
-      signedAgreement
+      agreement
     );
 
     // Create CAR
@@ -86,20 +86,20 @@ export class LigoInteractions {
     const bytes = writer.close({ resize: true });
 
     // Create message
-    const msg: ResponseToOffer = {
+    const msg: ProposeAgreement = {
       offer: offerId,
+      agreementCid: block.cid.toString(),
       agreementKey: base64.encode(symmetricKey),
     };
-    const attachment: Attachment = {
+    const attachment: CidAttachment = {
       id: block.cid.toString(),
-      description: "A LigoAgreement",
       data: {
         base64: base64url.encode(bytes),
       },
     };
     const didCommMsg = {
       id: uuidv4(),
-      type: MessageType.ResponseToOffer,
+      type: MessageType.ProposeAgreement,
       from: identifier.did,
       to: offerSellerDid,
       created_time: (new Date().getTime() / 1000).toString(),
@@ -128,9 +128,9 @@ export class LigoInteractions {
    *
    * Gets offer response from Waku store
    */
-  async getSignedOfferResponses(
+  async getProposedAgreements(
     offerIds: string[]
-  ): Promise<Record<string, DagJWS[]>> {
+  ): Promise<Record<string, LigoAgreement[]>> {
     const identifiers = await this.#veramoAgent.didManagerFind();
     if (identifiers.length === 0) {
       throw new Error("No identifiers found");
@@ -140,7 +140,7 @@ export class LigoInteractions {
     return (
       await Promise.all(
         offerIds.map(async (offerId) => {
-          const offerResponses = await this._getSignedOfferResponses(
+          const offerResponses = await this._getProposedAgreements(
             identifier,
             offerId
           );
@@ -152,10 +152,10 @@ export class LigoInteractions {
     });
   }
 
-  private async _getSignedOfferResponses(
+  private async _getProposedAgreements(
     identifier: IIdentifier,
     offerId: string
-  ) {
+  ): Promise<LigoAgreement[]> {
     // Fetch from Waku store
     const wakuDecoder = new DecoderV0(
       LigoInteractions.generateContentTopic(offerId)
@@ -186,19 +186,23 @@ export class LigoInteractions {
     );
 
     const offerResponses = messages.filter(
-      (unpackedMsg) => unpackedMsg.message.type === MessageType.ResponseToOffer
+      (unpackedMsg) => unpackedMsg.message.type === MessageType.ProposeAgreement
     );
 
     const agreements = await Promise.all(
       offerResponses.map(async (msg) => {
-        const body = msg.message.body as ResponseToOffer;
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        const attachment = (msg.message as any).attachments[0] as Attachment;
+        const body = msg.message.body as ProposeAgreement;
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const attachment = (msg.message as any).attachments.filter(
+          (a: any) => a.id === body.agreementCid
+        )[0] as CidAttachment;
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+
         const reader = await CarReader.fromBytes(
           base64url.decode(attachment.data.base64)
         );
 
-        const cid = CID.parse(attachment.id);
+        const cid = CID.parse(body.agreementCid);
         const block = await reader.get(cid);
         const decodedBlock = block
           ? await Block.create({
@@ -213,10 +217,10 @@ export class LigoInteractions {
         const symmetricKey = base64.decode(body.agreementKey);
         const agreementEncrypter = new AgreementEncrypter(symmetricKey);
 
-        const signedAgreement = await agreementEncrypter.decryptAgreement(
+        const agreement = await agreementEncrypter.decryptAgreement(
           encryptedAgreement as JWE
         );
-        return signedAgreement;
+        return agreement;
       })
     );
     return agreements;
