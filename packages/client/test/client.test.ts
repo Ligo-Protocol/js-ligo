@@ -116,25 +116,13 @@ describe("LigoClient", () => {
     }, 30000);
   });
 
-  //   describe("getOfferResponses", () => {
-  //     test("get offer response", async () => {
-  //       const wallet2 = EthereumWallet.createRandom();
-  //       const account2 = new AccountId({
-  //         address: wallet2.address,
-  //         chainId: `eip155:1`,
-  //       });
-  //
-  //       await buildAndConnectClient(wallet2);
-  //       global.localStorage.clear();
-  //       const { client: client1 } = await buildAndConnectClient();
-  //
-  //       const jws = await client1.signAgreement(agreement);
-  //       await client1.sendAgreement(jws, account2);
-  //
-  //       global.localStorage.clear();
-  //       const { client: client2 } = await buildAndConnectClient(wallet2);
-  //       const offerResponses = await client2.getOfferResponses();
-  //       expect(offerResponses).toHaveLength(1);
-  //     }, 30000);
-  //   });
+  describe("getOfferResponses", () => {
+    test("get offer response", async () => {
+      const { client } = await buildAndConnectClient();
+
+      const offerResponses = await client.getOfferResponses();
+      console.log(offerResponses);
+      expect(offerResponses).toHaveLength(1);
+    }, 30000);
+  });
 });

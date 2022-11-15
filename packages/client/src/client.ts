@@ -7,9 +7,9 @@ import { LigoAgreement } from "@js-ligo/vocab";
 import { AgreementSigner } from "@js-ligo/agreements";
 import { DagJWS } from "dids";
 import { AccountId } from "caip";
-import LitJsSdk from "@lit-protocol/sdk-browser";
+// import LitJsSdk from "@lit-protocol/sdk-browser";
 import { LigoInteractions } from "@js-ligo/interact";
-import { SiwxMessage } from "ceramic-cacao";
+// import { SiwxMessage } from "ceramic-cacao";
 import { DIDResolverPlugin } from "@veramo/did-resolver";
 import { DIDComm, IDIDComm } from "@veramo/did-comm";
 import { Resolver } from "did-resolver";
@@ -100,8 +100,8 @@ export type OfferResponse = {
 
 export class LigoClient {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  #litClient: any;
-  #litLib: any;
+  // #litClient: any;
+  // #litLib: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   #ethProvider: ExternalProvider;
@@ -112,16 +112,16 @@ export class LigoClient {
 
   constructor(
     ethProvider: ExternalProvider,
-    account: AccountId,
+    account: AccountId
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    litLibOverride?: any
+    // litLibOverride?: any
   ) {
     this.#ethProvider = ethProvider;
     // this.#ceramic = this.#orbis.ceramic as CeramicClient;
-    this.#litLib = litLibOverride ?? LitJsSdk;
-    this.#litClient = new this.#litLib.LitNodeClient({
-      alertWhenUnauthorized: false,
-    });
+    // this.#litLib = litLibOverride ?? LitJsSdk;
+    // this.#litClient = new this.#litLib.LitNodeClient({
+    //   alertWhenUnauthorized: false,
+    // });
     this.#account = account;
   }
 
