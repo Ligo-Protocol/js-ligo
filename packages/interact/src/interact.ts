@@ -1,7 +1,7 @@
 import { AgreementEncrypter } from "@js-ligo/agreements";
 import { DagJWS } from "dids";
 import { randomBytes } from "@stablelib/random";
-import { Waku, Encoder, Decoder } from "@waku/interfaces";
+import { Waku } from "@waku/interfaces";
 import {
   EncoderV0,
   DecoderV0,

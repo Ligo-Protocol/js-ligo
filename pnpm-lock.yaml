@@ -98,6 +98,7 @@ importers:
       '@typescript-eslint/parser': ^4.9.1
       '@veramo/core': ^4.1.1
       '@veramo/data-store': ^4.1.1
+      '@veramo/data-store-json': ^4.1.1
       '@veramo/did-comm': ^4.1.1
       '@veramo/did-manager': ^4.1.1
       '@veramo/did-provider-ethr': ^4.1.2
@@ -144,6 +145,7 @@ importers:
       '@lit-protocol/sdk-browser': 1.1.228
       '@veramo/core': 4.1.1
       '@veramo/data-store': 4.1.1_sqlite3@5.1.2
+      '@veramo/data-store-json': 4.1.1_sqlite3@5.1.2
       '@veramo/did-comm': 4.1.1
       '@veramo/did-manager': 4.1.1
       '@veramo/did-provider-ethr': 4.1.2
@@ -195,6 +197,7 @@ importers:
       '@types/uuid': ^8.3.4
       '@typescript-eslint/parser': ^4.9.1
       '@veramo/core': ^4.1.1
+      '@veramo/data-store-json': ^4.1.1
       '@veramo/did-comm': ^4.1.1
       '@veramo/did-manager': ^4.1.1
       '@veramo/did-provider-key': ^4.1.1
@@ -223,6 +226,7 @@ importers:
       '@stablelib/random': 1.0.2
       '@types/uuid': 8.3.4
       '@veramo/core': 4.1.1
+      '@veramo/data-store-json': 4.1.1
       '@veramo/did-comm': 4.1.1
       '@veramo/did-manager': 4.1.1
       '@veramo/did-provider-key': 4.1.1
@@ -4417,6 +4421,10 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
+  /@ungap/structured-clone/1.0.1:
+    resolution: {integrity: sha512-zKVyTt6rELvPXYwcVPTJcPFtY0AckN5A7xWuc7owBqR0FdtuDYhE9MZZUi6IY1kZUQFSXV1B3UOOIyLkVHYd2w==}
+    dev: false
+
   /@vascosantos/moving-average/1.1.0:
     resolution: {integrity: sha512-MVEJ4vWAPNbrGLjz7ITnHYg+YXZ6ijAqtH5/cHwSoCpbvuJ98aLXwFfPKAUfZpJMQR5uXB58UJajbY130IRF/w==}
 
@@ -4431,6 +4439,104 @@ packages:
       z-schema: 5.0.4
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@veramo/data-store-json/4.1.1:
+    resolution: {integrity: sha512-pInoq+iVlpp6KFZ2e7ATAqrwwCmzmlVv8r8qmYqA8D6Ah/T+J9kTMYkpW/Xf5T/hleN92uFo7Rc/D4Gn6gnwhw==}
+    dependencies:
+      '@ungap/structured-clone': 1.0.1
+      '@veramo/core': 4.1.1
+      '@veramo/data-store': 4.1.1
+      '@veramo/did-discovery': 4.1.1
+      '@veramo/did-manager': 4.1.1
+      '@veramo/key-manager': 4.1.1
+      '@veramo/utils': 4.1.1
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+    dev: false
+
+  /@veramo/data-store-json/4.1.1_sqlite3@5.1.2:
+    resolution: {integrity: sha512-pInoq+iVlpp6KFZ2e7ATAqrwwCmzmlVv8r8qmYqA8D6Ah/T+J9kTMYkpW/Xf5T/hleN92uFo7Rc/D4Gn6gnwhw==}
+    dependencies:
+      '@ungap/structured-clone': 1.0.1
+      '@veramo/core': 4.1.1
+      '@veramo/data-store': 4.1.1_sqlite3@5.1.2
+      '@veramo/did-discovery': 4.1.1
+      '@veramo/did-manager': 4.1.1
+      '@veramo/key-manager': 4.1.1
+      '@veramo/utils': 4.1.1
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+    dev: false
+
+  /@veramo/data-store/4.1.1:
+    resolution: {integrity: sha512-8s1U53/tG9tMleAc0+L80stjkx5tMEolRMwnzumPArHAALNttp5W2YxEff+ZVs/k40dM33Kz5AiBoa+vcdgqLQ==}
+    dependencies:
+      '@veramo/core': 4.1.1
+      '@veramo/did-discovery': 4.1.1
+      '@veramo/did-manager': 4.1.1
+      '@veramo/key-manager': 4.1.1
+      '@veramo/utils': 4.1.1
+      debug: 4.3.4
+      typeorm: 0.3.10
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
     dev: false
 
   /@veramo/data-store/4.1.1_sqlite3@5.1.2:
@@ -14039,6 +14145,85 @@ packages:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
     dev: true
     optional: true
+
+  /typeorm/0.3.10:
+    resolution: {integrity: sha512-VMKiM84EpJQ+Mz9xDIPqnfplWhyUy1d8ccaKdMY9obifxJOTFnv8GYVyPsGwG8Lk7Nb8MlttHyHWENGAhBA3WA==}
+    engines: {node: '>= 12.9.0'}
+    hasBin: true
+    peerDependencies:
+      '@google-cloud/spanner': ^5.18.0
+      '@sap/hana-client': ^2.12.25
+      better-sqlite3: ^7.1.2
+      hdb-pool: ^0.1.6
+      ioredis: ^5.0.4
+      mongodb: ^3.6.0
+      mssql: ^7.3.0
+      mysql2: ^2.2.5
+      oracledb: ^5.1.0
+      pg: ^8.5.1
+      pg-native: ^3.0.0
+      pg-query-stream: ^4.0.0
+      redis: ^3.1.1 || ^4.0.0
+      sql.js: ^1.4.0
+      sqlite3: ^5.0.3
+      ts-node: ^10.7.0
+      typeorm-aurora-data-api-driver: ^2.0.0
+    peerDependenciesMeta:
+      '@google-cloud/spanner':
+        optional: true
+      '@sap/hana-client':
+        optional: true
+      better-sqlite3:
+        optional: true
+      hdb-pool:
+        optional: true
+      ioredis:
+        optional: true
+      mongodb:
+        optional: true
+      mssql:
+        optional: true
+      mysql2:
+        optional: true
+      oracledb:
+        optional: true
+      pg:
+        optional: true
+      pg-native:
+        optional: true
+      pg-query-stream:
+        optional: true
+      redis:
+        optional: true
+      sql.js:
+        optional: true
+      sqlite3:
+        optional: true
+      ts-node:
+        optional: true
+      typeorm-aurora-data-api-driver:
+        optional: true
+    dependencies:
+      '@sqltools/formatter': 1.2.5
+      app-root-path: 3.1.0
+      buffer: 6.0.3
+      chalk: 4.1.2
+      cli-highlight: 2.1.11
+      date-fns: 2.29.3
+      debug: 4.3.4
+      dotenv: 16.0.3
+      glob: 7.2.3
+      js-yaml: 4.1.0
+      mkdirp: 1.0.4
+      reflect-metadata: 0.1.13
+      sha.js: 2.4.11
+      tslib: 2.4.0
+      uuid: 8.3.2
+      xml2js: 0.4.23
+      yargs: 17.5.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /typeorm/0.3.10_sqlite3@5.1.2:
     resolution: {integrity: sha512-VMKiM84EpJQ+Mz9xDIPqnfplWhyUy1d8ccaKdMY9obifxJOTFnv8GYVyPsGwG8Lk7Nb8MlttHyHWENGAhBA3WA==}

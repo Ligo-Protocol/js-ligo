@@ -31,33 +31,25 @@ import { Web3KeyManagementSystem } from "@veramo/kms-web3";
 import { createPrivacyNode } from "@waku/create";
 import { EthrDIDProvider } from "@veramo/did-provider-ethr";
 import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
-import { DataSource } from "typeorm";
 import {
-  Entities,
-  KeyStore,
-  DIDStore,
-  PrivateKeyStore,
-  migrations,
-} from "@veramo/data-store";
+  KeyStoreJson,
+  VeramoJsonStore,
+  PrivateKeyStoreJson,
+  DIDStoreJson,
+} from "@veramo/data-store-json";
 
-function defaultVeramoAgent(provider: ExternalProvider, kmsSecretKey: string) {
-  const dbConnection = new DataSource({
-    type: "sqlite",
-    database: "./test/database.sqlite",
-    synchronize: false,
-    migrations,
-    migrationsRun: true,
-    logging: ["error", "info", "warn"],
-    entities: Entities,
-  }).initialize();
-
+function defaultVeramoAgent(
+  provider: ExternalProvider,
+  kmsSecretKey: string,
+  dataStore: VeramoJsonStore
+) {
   return createAgent<IResolver & IDIDComm & IDIDManager & IKeyManager>({
     plugins: [
       new KeyManager({
-        store: new KeyStore(dbConnection),
+        store: new KeyStoreJson(dataStore),
         kms: {
           local: new KeyManagementSystem(
-            new PrivateKeyStore(dbConnection, new SecretBox(kmsSecretKey))
+            new PrivateKeyStoreJson(dataStore, new SecretBox(kmsSecretKey))
           ),
           web3: new Web3KeyManagementSystem({
             default: new Web3Provider(provider),
@@ -75,7 +67,7 @@ function defaultVeramoAgent(provider: ExternalProvider, kmsSecretKey: string) {
       }),
       new DIDComm([]),
       new DIDManager({
-        store: new DIDStore(dbConnection),
+        store: new DIDStoreJson(dataStore),
         defaultProvider: "did:ethr:goerli",
         providers: {
           "did:ethr:goerli": new EthrDIDProvider({
@@ -128,12 +120,14 @@ export class LigoClient {
   async connect(
     opts: CapabilityOpts,
     kmsSecretKey: string,
+    dataStore: VeramoJsonStore,
     waku?: Waku,
     veramoAgent?: TAgent<IResolver & IDIDComm & IDIDManager>
   ) {
     // Setup interactions
     const agent =
-      veramoAgent ?? defaultVeramoAgent(this.#ethProvider, kmsSecretKey);
+      veramoAgent ??
+      defaultVeramoAgent(this.#ethProvider, kmsSecretKey, dataStore);
     this.#interactions = new LigoInteractions(
       waku ?? (await createPrivacyNode()),
       agent

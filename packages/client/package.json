@@ -33,6 +33,7 @@
     "@lit-protocol/sdk-browser": "^1.1.228",
     "@veramo/core": "^4.1.1",
     "@veramo/data-store": "^4.1.1",
+    "@veramo/data-store-json": "^4.1.1",
     "@veramo/did-comm": "^4.1.1",
     "@veramo/did-manager": "^4.1.1",
     "@veramo/did-provider-ethr": "^4.1.2",
@@ -51,9 +52,7 @@
     "ethers": "^5.7.1",
     "ethr-did-resolver": "^8.0.0",
     "key-did-resolver": "^2.0.5",
-    "multiformats": "^9.9.0",
-    "sqlite3": "^5.1.2",
-    "typeorm": "^0.3.10"
+    "multiformats": "^9.9.0"
   },
   "jest": {
     "extensionsToTreatAsEsm": [

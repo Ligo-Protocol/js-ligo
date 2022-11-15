@@ -13,6 +13,8 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { readFile, writeFile } from "fs/promises";
+import { VeramoJsonStore, VeramoJsonCache } from "@veramo/data-store-json";
 
 const DID_B = "did:ethr:goerli:0xE9976B324098dC194399f445cDbd989Bc42B4da7";
 const KMS_SECRET_KEY =
@@ -56,6 +58,8 @@ globalThis.location = {
 } as unknown as Location;
 
 describe("LigoClient", () => {
+  let dataStore: VeramoJsonStore;
+
   const agreement: LigoAgreement = {
     order: {
       "@id": "ipfs://fake",
@@ -81,14 +85,46 @@ describe("LigoClient", () => {
       waitForRemotePeer(waku1, [Protocols.Relay, Protocols.Store]),
     ]);
 
-    const client = new LigoClient(provider, account, LitJsSdk);
-    await client.connect({ domain: "localhost" }, KMS_SECRET_KEY, waku1);
+    try {
+      dataStore = {
+        notifyUpdate: async (
+          _oldState: VeramoJsonCache,
+          _newState: VeramoJsonCache
+        ) => {
+          return;
+        },
+        ...(JSON.parse(
+          (await readFile("./test/test-datastore.json")).toString("utf8")
+        ) as VeramoJsonStore),
+      };
+    } catch (e) {
+      dataStore = {
+        notifyUpdate: async (
+          _oldState: VeramoJsonCache,
+          _newState: VeramoJsonCache
+        ) => {
+          return;
+        },
+      };
+    }
+
+    const client = new LigoClient(provider, account);
+    await client.connect(
+      { domain: "localhost" },
+      KMS_SECRET_KEY,
+      dataStore,
+      waku1
+    );
 
     return { client, account };
   }
 
   beforeEach(() => {
     global.localStorage.clear();
+  });
+
+  afterEach(async () => {
+    await writeFile("./test/test-datastore.json", JSON.stringify(dataStore));
   });
 
   describe("signAgreement", () => {
