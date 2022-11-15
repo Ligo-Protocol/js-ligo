@@ -4,7 +4,6 @@ import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
 import { randomBytes } from "@stablelib/random";
-import * as u8a from "uint8arrays";
 
 async function createDID() {
   const seed = randomBytes(32);

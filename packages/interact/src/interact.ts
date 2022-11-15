@@ -66,7 +66,7 @@ export class LigoInteractions {
     signedAgreement: DagJWS
   ) {
     const identifiers = await this.#veramoAgent.didManagerFind();
-    if (identifiers.length == 0) {
+    if (identifiers.length === 0) {
       throw new Error("No identifiers found");
     }
     const identifier = identifiers[0];
@@ -132,7 +132,7 @@ export class LigoInteractions {
    */
   async getSignedOfferResponses(): Promise<DagJWS[]> {
     const identifiers = await this.#veramoAgent.didManagerFind();
-    if (identifiers.length == 0) {
+    if (identifiers.length === 0) {
       throw new Error("No identifiers found");
     }
     const identifier = identifiers[0];
@@ -145,9 +145,11 @@ export class LigoInteractions {
         const msg = await msgP;
         if (msg?.payload) {
           const payload = json.decode(msg.payload);
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           const recipients = (payload as any).recipients;
           if (!recipients) return;
 
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           const myRecipients = recipients.filter((r: any) => {
             return r.header.kid.split("#")[0] === identifier.did;
           });
@@ -162,12 +164,13 @@ export class LigoInteractions {
     );
 
     const offerResponses = messages.filter(
-      (unpackedMsg) => unpackedMsg.message.type == MessageType.ResponseToOffer
+      (unpackedMsg) => unpackedMsg.message.type === MessageType.ResponseToOffer
     );
 
     const agreements = await Promise.all(
       offerResponses.map(async (msg) => {
         const body = msg.message.body as ResponseToOffer;
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         const attachment = (msg.message as any).attachments[0] as Attachment;
         const reader = await CarReader.fromBytes(
           base64url.decode(attachment.data.base64)

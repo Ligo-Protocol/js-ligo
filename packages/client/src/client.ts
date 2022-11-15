@@ -213,7 +213,7 @@ export class LigoClient {
   }
 
   async getOfferResponses(): Promise<OfferResponse[]> {
-    if (!this.#interactions || !this.#agreementSigner) {
+    if (!this.#interactions) {
       throw new Error("LigoClient is not connected");
     }
 
@@ -221,7 +221,11 @@ export class LigoClient {
 
     return await Promise.all(
       signedAgreements.map(async (signedAgreement) => {
-        const payload = await this.#agreementSigner!.verifyAgreement(
+        if (!this.#agreementSigner) {
+          throw new Error("LigoClient is not connected");
+        }
+
+        const payload = await this.#agreementSigner.verifyAgreement(
           signedAgreement
         );
         return {
@@ -269,7 +273,7 @@ export class LigoClient {
     const identifier = await agent.didManagerGet({
       did: `did:ethr:goerli:${this.#account.address}`,
     });
-    if (identifier.keys.filter((k) => k.type === "X25519").length == 0) {
+    if (identifier.keys.filter((k) => k.type === "X25519").length === 0) {
       // Create encryption key
       const key = await agent.keyManagerCreate({
         kms: "local",

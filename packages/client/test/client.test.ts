@@ -2,13 +2,8 @@
 import { LigoClient } from "../src";
 import { LigoAgreement } from "@js-ligo/vocab";
 import { AccountId } from "caip";
-import { EventEmitter } from "events";
-import { fromString, toString } from "uint8arrays";
 import { Crypto } from "@peculiar/webcrypto";
 import { Blob, FileReader } from "vblob";
-import { JWE } from "did-jwt";
-import { CID } from "multiformats/cid";
-import LitJsSdk from "@lit-protocol/sdk-nodejs";
 import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
 import ethProvider from "eth-provider";
 import { createFullNode } from "@waku/create";
