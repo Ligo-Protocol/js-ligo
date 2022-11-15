@@ -206,28 +206,42 @@ export class LigoClient {
     );
   }
 
-  async getOfferResponses(): Promise<OfferResponse[]> {
+  async getOfferResponses(
+    offerIds: string[]
+  ): Promise<Record<string, OfferResponse[]>> {
     if (!this.#interactions) {
       throw new Error("LigoClient is not connected");
     }
 
-    const signedAgreements = await this.#interactions.getSignedOfferResponses();
+    const signedAgreements = await this.#interactions.getSignedOfferResponses(
+      offerIds
+    );
 
-    return await Promise.all(
-      signedAgreements.map(async (signedAgreement) => {
-        if (!this.#agreementSigner) {
-          throw new Error("LigoClient is not connected");
-        }
+    const offerResponses = await Promise.all(
+      Object.keys(signedAgreements).map(async (offerId) => {
+        const offerResponses = await Promise.all(
+          signedAgreements[offerId].map(async (signedAgreement) => {
+            if (!this.#agreementSigner) {
+              throw new Error("LigoClient is not connected");
+            }
 
-        const payload = await this.#agreementSigner.verifyAgreement(
-          signedAgreement
+            const payload = await this.#agreementSigner.verifyAgreement(
+              signedAgreement
+            );
+            return {
+              signedAgreement: signedAgreement,
+              verifiedAgreement: payload,
+            };
+          })
         );
-        return {
-          signedAgreement: signedAgreement,
-          verifiedAgreement: payload,
-        };
+
+        return { [offerId]: offerResponses };
       })
     );
+
+    return offerResponses.reduce((prev, cur) => {
+      return { ...prev, ...cur };
+    });
   }
 
   private async _importSigningKey(

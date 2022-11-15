@@ -151,7 +151,7 @@ describe("LigoClient", () => {
     test("get offer response", async () => {
       const { client } = await buildAndConnectClient();
 
-      const offerResponses = await client.getOfferResponses();
+      const offerResponses = await client.getOfferResponses(["ceramic://id"]);
       console.log(offerResponses);
       expect(offerResponses).toHaveLength(1);
     }, 30000);
