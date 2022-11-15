@@ -26,7 +26,6 @@ import {
 } from "@veramo/key-manager";
 import { KeyManagementSystem } from "@veramo/kms-local";
 import { base64 } from "multiformats/bases/base64";
-import { base16 } from "multiformats/bases/base16";
 
 const SEED_A = "mGqEJyPzOv065BYm7fppSAkMZncdrfw84q+vb880kCS4";
 const DID_B = "did:key:z6MkonTpPJpn82FfGu4gebWHkMEn9fn5uCjhSE74d11QxK3Q";
@@ -140,7 +139,7 @@ describe("LigoInteractions", () => {
   describe("getOfferResponses", () => {
     test("should get messages", async () => {
       const { interactions } = await buildInteractions();
-      await interactions.getOfferResponses();
+      await interactions.getSignedOfferResponses();
     }, 30000);
   });
 });

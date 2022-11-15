@@ -130,7 +130,7 @@ export class LigoInteractions {
    *
    * Gets offer response from Waku store
    */
-  async getOfferResponses(): Promise<DagJWS[]> {
+  async getSignedOfferResponses(): Promise<DagJWS[]> {
     const identifiers = await this.#veramoAgent.didManagerFind();
     if (identifiers.length == 0) {
       throw new Error("No identifiers found");
