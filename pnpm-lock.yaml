@@ -42,7 +42,7 @@ importers:
     specifiers:
       '@ipld/car': ^4.1.5
       '@ipld/dag-pb': ^2.1.18
-      '@js-ligo/vocab': workspace:^0.1.0
+      '@js-ligo/vocab': workspace:^0.2.0
       '@stablelib/random': ^1.0.2
       '@typescript-eslint/parser': ^4.9.1
       dag-jose: ^2.0.1
@@ -89,9 +89,9 @@ importers:
       '@ceramicnetwork/http-client': ^2.4.0
       '@ethersproject/providers': ^5.7.2
       '@ethersproject/wallet': ^5.7.0
-      '@js-ligo/agreements': workspace:^0.1.0
-      '@js-ligo/interact': workspace:^0.1.0
-      '@js-ligo/vocab': workspace:^0.1.0
+      '@js-ligo/agreements': workspace:^0.2.0
+      '@js-ligo/interact': workspace:^0.2.0
+      '@js-ligo/vocab': workspace:^0.2.0
       '@lit-protocol/sdk-browser': ^1.1.228
       '@lit-protocol/sdk-nodejs': ^1.1.228
       '@peculiar/webcrypto': ^1.4.0
@@ -187,8 +187,8 @@ importers:
   packages/interact:
     specifiers:
       '@ipld/car': ^4.1.5
-      '@js-ligo/agreements': workspace:^0.1.0
-      '@js-ligo/vocab': workspace:^0.1.0
+      '@js-ligo/agreements': workspace:^0.2.0
+      '@js-ligo/vocab': workspace:^0.2.0
       '@stablelib/random': ^1.0.2
       '@types/uuid': ^8.3.4
       '@typescript-eslint/parser': ^4.9.1
