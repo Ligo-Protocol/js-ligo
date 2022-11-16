@@ -9,6 +9,7 @@ import { DagJWS } from "dids";
 import { AccountId } from "caip";
 // import LitJsSdk from "@lit-protocol/sdk-browser";
 import { LigoInteractions } from "@js-ligo/interact";
+import { LigoSafeEscrow } from "@js-ligo/safe-escrow";
 // import { SiwxMessage } from "ceramic-cacao";
 import { DIDResolverPlugin } from "@veramo/did-resolver";
 import { DIDComm, IDIDComm } from "@veramo/did-comm";
@@ -37,6 +38,7 @@ import {
   PrivateKeyStoreJson,
   DIDStoreJson,
 } from "@veramo/data-store-json";
+import { ethers } from "ethers";
 
 function defaultVeramoAgent(
   provider: ExternalProvider,
@@ -95,6 +97,7 @@ export class LigoClient {
   #account: AccountId;
   #session?: DIDSession;
   #agreementSigner?: AgreementSigner;
+  #paymentMethod: LigoSafeEscrow;
   #interactions?: LigoInteractions;
 
   constructor(
@@ -104,6 +107,10 @@ export class LigoClient {
     // litLibOverride?: any
   ) {
     this.#ethProvider = ethProvider;
+    this.#paymentMethod = new LigoSafeEscrow(
+      new Web3Provider(ethProvider),
+      account
+    );
     // this.#ceramic = this.#orbis.ceramic as CeramicClient;
     // this.#litLib = litLibOverride ?? LitJsSdk;
     // this.#litClient = new this.#litLib.LitNodeClient({
@@ -157,6 +164,9 @@ export class LigoClient {
     // Setup did:ethr
     await this._createOrImportEncryptionKeys(agent);
 
+    // Setup payment method
+    await this.#paymentMethod.connect();
+
     // Connect to Lit Client
     // await this.#litClient.connect();
     // const msg = SiwxMessage.fromCacao(this.#session.cacao).toMessage(
@@ -183,7 +193,7 @@ export class LigoClient {
   }
 
   /**
-   * Respond to an offer by sending a signed agreement
+   * Respond to an offer by sending an agreement
    */
   async proposeAgreement(
     offerId: string,
@@ -194,6 +204,21 @@ export class LigoClient {
       throw new Error("LigoClient is not connected");
     }
 
+    // Create escrow
+    const paymentMethodId = await this.#paymentMethod.createEscrow([
+      this.#account,
+    ]);
+
+    // Deposit funds
+    // TODO: Fixed deposit of 0.1 ETH for now
+    await this.#paymentMethod.depositNative(
+      paymentMethodId,
+      ethers.utils.parseEther("0.001")
+    );
+
+    // TODO: Add paymentMethodId to agreement
+
+    // Propose agreement
     await this.#interactions.proposeAgreement(
       offerId,
       offerSellerDid,

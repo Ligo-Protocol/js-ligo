@@ -135,14 +135,14 @@ describe("LigoClient", () => {
       expect(jws).toBeDefined();
 
       localStorage.setItem("ceramic-session", "");
-    }, 30000);
+    }, 300000);
   });
 
   describe("proposeAgreement", () => {
-    test("send agreement", async () => {
+    test.only("send agreement", async () => {
       const { client } = await buildAndConnectClient();
       await client.proposeAgreement("ceramic://id", DID_B, agreement);
-    }, 30000);
+    }, 300000);
   });
 
   describe("getProposedAgreements", () => {
@@ -154,6 +154,6 @@ describe("LigoClient", () => {
       ]);
       console.log(offerResponses);
       expect(offerResponses).toHaveLength(1);
-    }, 30000);
+    }, 300000);
   });
 });

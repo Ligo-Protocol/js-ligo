@@ -30,6 +30,7 @@
     "@js-ligo/agreements": "workspace:^0.2.0",
     "@js-ligo/interact": "workspace:^0.2.0",
     "@js-ligo/vocab": "workspace:^0.2.0",
+    "@js-ligo/safe-escrow": "workspace:^0.2.0",
     "@lit-protocol/sdk-browser": "^1.1.228",
     "@veramo/core": "^4.1.1",
     "@veramo/data-store": "^4.1.1",
