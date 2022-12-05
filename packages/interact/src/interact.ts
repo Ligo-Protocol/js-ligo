@@ -6,8 +6,6 @@ import {
   DecoderV0,
   MessageV0,
 } from "@waku/core/lib/waku_message/version_0";
-import { CarBufferWriter } from "@ipld/car";
-import { CarReader } from "@ipld/car/reader";
 import { base64, base64url } from "multiformats/bases/base64";
 import { IDIDComm, IUnpackedDIDCommMessage } from "@veramo/did-comm";
 import { IResolver, TAgent, IDIDManager, IIdentifier } from "@veramo/core";
@@ -78,12 +76,6 @@ export class LigoInteractions {
       codec: dagJose,
       hasher: sha256,
     });
-    const buffer = new ArrayBuffer(block.bytes.length * 2);
-    const writer = CarBufferWriter.createWriter(buffer, {
-      roots: [block.cid],
-    });
-    writer.write(block);
-    const bytes = writer.close({ resize: true });
 
     // Create message
     const msg: ProposeAgreement = {
@@ -94,7 +86,7 @@ export class LigoInteractions {
     const attachment: CidAttachment = {
       id: block.cid.toString(),
       data: {
-        base64: base64url.encode(bytes),
+        base64: base64url.encode(block.bytes),
       },
     };
     const didCommMsg = {
@@ -198,20 +190,15 @@ export class LigoInteractions {
         )[0] as CidAttachment;
         /* eslint-enable @typescript-eslint/no-explicit-any */
 
-        const reader = await CarReader.fromBytes(
-          base64url.decode(attachment.data.base64)
-        );
+        const bytes = base64url.decode(attachment.data.base64);
 
         const cid = CID.parse(body.agreementCid);
-        const block = await reader.get(cid);
-        const decodedBlock = block
-          ? await Block.create({
-              bytes: block.bytes,
-              cid,
-              codec: dagJose,
-              hasher: sha256,
-            })
-          : undefined;
+        const decodedBlock = await Block.create({
+          bytes: bytes,
+          cid,
+          codec: dagJose,
+          hasher: sha256,
+        });
 
         const encryptedAgreement = decodedBlock?.value as JWE;
         const symmetricKey = base64.decode(body.agreementKey);
