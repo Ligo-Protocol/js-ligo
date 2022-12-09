@@ -1,15 +1,41 @@
-import { Role } from "schema-dts";
+import { CID } from "multiformats/cid";
 
-export declare type IdReference = {
-  /** IRI identifying the canonical address of this object. */
-  "@id": string;
-};
+export type Date = string;
+export type DID = string;
+export type AccountID = string;
 
-export declare type SchemaValue<T, TProperty extends string> =
-  | T
-  | Role<T, TProperty>
-  | readonly (T | Role<T, TProperty>)[];
+// See https://schema.org/GeoCoordinates
+export interface GeoCoordinates {
+  // The latitude of a location
+  latitude: number;
 
-export declare type WithContext<T> = T & {
-  "@context": "https://schema.org";
-};
+  // The longitude of a location
+  longitude: number;
+}
+
+// See https://schema.org/GeoCircle
+export interface GeoCircle {
+  // Indicates the approximate radius of a GeoCircle in meters
+  geoRadius: number;
+
+  // Indicates the GeoCoordinates at the centre of a GeoShape, e.g. GeoCircle
+  geoMidpoint: GeoCoordinates;
+}
+
+// See https://schema.org/QuantitativeValue
+export interface QuantitativeValue {
+  maxValue?: number;
+  minValue?: number;
+  unitCode?: string;
+  unitText?: string;
+  value?: number;
+}
+
+export type EncodingImage = "Gif" | "Jpeg" | "Png" | "Svg";
+
+export interface ImageObject {
+  name?: String;
+  content: CID;
+  contentSize?: number;
+  encodingFormat: EncodingImage;
+}

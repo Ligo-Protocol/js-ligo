@@ -1,0 +1,432 @@
+{
+  "types": {
+    "Car": {
+      "struct": {
+        "fields": {
+          "modelDate": {
+            "type": "Date"
+          },
+          "vehicleIdentificationNumber": {
+            "type": "String"
+          },
+          "manufacturer": {
+            "type": "String"
+          },
+          "brand": {
+            "type": "String"
+          },
+          "model": {
+            "type": "String"
+          },
+          "vehicleConfiguration": {
+            "type": "String"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "LigoAgreement": {
+      "struct": {
+        "fields": {
+          "order": {
+            "type": {
+              "link": {
+                "expectedType": "Order"
+              }
+            }
+          },
+          "reservation": {
+            "type": {
+              "link": {
+                "expectedType": "RentalCarReservation"
+              }
+            }
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "LigoAgreementState": {
+      "struct": {
+        "fields": {
+          "startFuelLevel": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "startOdometer": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "startLocation": {
+            "type": "GeoCoordinates"
+          },
+          "endFuelLevel": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "endOdometer": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "endLocation": {
+            "type": "GeoCoordinates"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "LigoSafeEscrow": {
+      "struct": {
+        "fields": {
+          "vehicleCredentialIssuers": {
+            "type": {
+              "list": {
+                "valueType": "DID"
+              }
+            }
+          },
+          "erc792Arbitrator": {
+            "type": "AccountID"
+          },
+          "buyerSignerAccountId": {
+            "type": "AccountID"
+          },
+          "sellerSignerAccountId": {
+            "type": "AccountID"
+          },
+          "deploymentPaymentAmount": {
+            "type": "Int"
+          },
+          "deploymentPaymentReceiver": {
+            "type": "AccountID"
+          },
+          "deploymentNonce": {
+            "type": "String"
+          },
+          "safeAccountId": {
+            "type": "AccountID"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "LigoPaymentMethod": {
+      "union": {
+        "members": ["LigoSafeEscrow"],
+        "representation": {
+          "inline": {
+            "discriminantKey": "method",
+            "discriminantTable": {
+              "LigoSafeEscrow": "LigoSafeEscrow"
+            }
+          }
+        }
+      }
+    },
+    "EncodingImage": {
+      "enum": {
+        "members": ["Gif", "Jpeg", "Png", "Svg"],
+        "representation": {
+          "string": {
+            "Gif": "image/gif",
+            "Jpeg": "image/jpeg",
+            "Png": "image/png",
+            "Svg": "image/svg+xml"
+          }
+        }
+      }
+    },
+    "ImageObject": {
+      "struct": {
+        "fields": {
+          "name": {
+            "type": "String",
+            "optional": true
+          },
+          "content": {
+            "type": {
+              "link": {
+                "expectedType": "Bytes"
+              }
+            }
+          },
+          "contentSize": {
+            "type": "Int",
+            "optional": true
+          },
+          "encodingFormat": {
+            "type": "EncodingImage"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "Offer": {
+      "struct": {
+        "fields": {
+          "description": {
+            "type": "String"
+          },
+          "images": {
+            "type": {
+              "list": {
+                "valueType": {
+                  "link": {
+                    "expectedType": "ImageObject"
+                  }
+                }
+              }
+            }
+          },
+          "itemOffered": {
+            "type": {
+              "link": {
+                "expectedType": "Car"
+              }
+            }
+          },
+          "seller": {
+            "type": "DID"
+          },
+          "areaServed": {
+            "type": "GeoCircle"
+          },
+          "priceSpecifications": {
+            "type": {
+              "list": {
+                "valueType": "PriceSpecification"
+              }
+            }
+          },
+          "acceptedPaymentMethods": {
+            "type": {
+              "list": {
+                "valueType": "LigoPaymentMethod"
+              }
+            }
+          },
+          "advanceBookingRequirement": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "eligibleQuantity": {
+            "type": "QuantitativeValue",
+            "optional": true
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "Order": {
+      "struct": {
+        "fields": {
+          "acceptedOffer": {
+            "type": {
+              "link": {
+                "expectedType": "Offer"
+              }
+            }
+          },
+          "customer": {
+            "type": "DID"
+          },
+          "seller": {
+            "type": "DID"
+          },
+          "orderDate": {
+            "type": "Date"
+          },
+          "paymentMethod": {
+            "type": "LigoPaymentMethod"
+          },
+          "paymentMethodId": {
+            "type": "String",
+            "optional": true
+          },
+          "paymentUrl": {
+            "type": "String",
+            "optional": true
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "PriceSpecification": {
+      "struct": {
+        "fields": {
+          "price": {
+            "type": "Float"
+          },
+          "priceCurrency": {
+            "type": "String"
+          },
+          "eligibleQuantity": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "validFrom": {
+            "type": "Date",
+            "optional": true
+          },
+          "validThrough": {
+            "type": "Date",
+            "optional": true
+          },
+          "referenceQuantity": {
+            "type": "QuantitativeValue",
+            "optional": true
+          },
+          "billingIncrement": {
+            "type": "Float",
+            "optional": true
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "Place": {
+      "struct": {
+        "fields": {
+          "geo": {
+            "type": "GeoCoordinates",
+            "optional": true
+          },
+          "address": {
+            "type": "String",
+            "optional": true
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "RentalCarReservation": {
+      "struct": {
+        "fields": {
+          "bookingTime": {
+            "type": "Date"
+          },
+          "modifiedTime": {
+            "type": "Date"
+          },
+          "provider": {
+            "type": "DID"
+          },
+          "reservationFor": {
+            "type": {
+              "link": {
+                "expectedType": "Car"
+              }
+            }
+          },
+          "totalPrice": {
+            "type": "PriceSpecification"
+          },
+          "underName": {
+            "type": "DID"
+          },
+          "dropoffLocation": {
+            "type": "Place"
+          },
+          "dropoffTime": {
+            "type": "Date"
+          },
+          "pickupLocation": {
+            "type": "Place"
+          },
+          "pickupTime": {
+            "type": "Date"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "Date": {
+      "string": {}
+    },
+    "DID": {
+      "string": {}
+    },
+    "AccountID": {
+      "string": {}
+    },
+    "GeoCoordinates": {
+      "struct": {
+        "fields": {
+          "latitude": {
+            "type": "Float"
+          },
+          "longitude": {
+            "type": "Float"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "GeoCircle": {
+      "struct": {
+        "fields": {
+          "geoRadius": {
+            "type": "Float"
+          },
+          "geoMidpoint": {
+            "type": "GeoCoordinates"
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    },
+    "QuantitativeValue": {
+      "struct": {
+        "fields": {
+          "maxValue": {
+            "type": "Float",
+            "optional": true
+          },
+          "minValue": {
+            "type": "Float",
+            "optional": true
+          },
+          "unitCode": {
+            "type": "String",
+            "optional": true
+          },
+          "unitText": {
+            "type": "String",
+            "optional": true
+          },
+          "value": {
+            "type": "Float",
+            "optional": true
+          }
+        },
+        "representation": {
+          "map": {}
+        }
+      }
+    }
+  }
+}
