@@ -1,21 +1,20 @@
-import { LigoAgreement, schema } from "../src";
-import { CID } from "multiformats/cid";
+import { PriceSpecification, schema } from "../src";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { create } from "@ipld/schema/typed.js";
 
-describe("LigoAgreement", () => {
+describe("PriceSpecification", () => {
   test("typed", async () => {
     const raw = {
-      order: CID.parse(
-        "bafybeidskjjd4zmr7oh6ku6wp72vvbxyibcli2r6if3ocdcy7jjjusvl2u"
-      ),
-      reservation: CID.parse(
-        "bafybeidskjjd4zmr7oh6ku6wp72vvbxyibcli2r6if3ocdcy7jjjusvl2u"
-      ),
+      price: 25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
     };
-    const typed: LigoAgreement = raw as LigoAgreement;
-    const schemaTyped = create(schema, "LigoAgreement");
+    const typed: PriceSpecification = raw as PriceSpecification;
+    const schemaTyped = create(schema, "PriceSpecification");
     const typedData = schemaTyped.toTyped(raw);
     const representationData = schemaTyped.toRepresentation(typed);
 
