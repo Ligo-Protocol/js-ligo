@@ -29,7 +29,7 @@
     "@ethersproject/providers": "^5.7.2",
     "@js-ligo/agreements": "workspace:^0.2.1",
     "@js-ligo/interact": "workspace:^0.2.1",
-    "@js-ligo/vocab": "workspace:^0.2.1",
+    "@js-ligo/vocab": "workspace:^0.3.0",
     "@lit-protocol/sdk-browser": "^1.1.228",
     "@veramo/core": "^4.1.1",
     "@veramo/data-store": "^4.1.1",

@@ -27,7 +27,7 @@
   "dependencies": {
     "@ipld/car": "^4.1.5",
     "@ipld/dag-pb": "^2.1.18",
-    "@js-ligo/vocab": "workspace:^0.2.1",
+    "@js-ligo/vocab": "workspace:^0.3.0",
     "@typescript-eslint/parser": "^4.9.1",
     "dag-jose": "^2.0.1",
     "dag-jose-utils": "^2.0.0",
