@@ -5,8 +5,8 @@ export interface PriceSpecification {
   // The offer price of a product, or of a price component when attached to PriceSpecification and its subtypes
   price: number;
 
-  // The currency of the price, or a price component when attached to PriceSpecification and its subtypes
-  priceCurrency: String;
+  // The currency of the price, or a price component when attached to PriceSpecification and its subtypes
+  priceCurrency: string;
 
   // The interval and unit of measurement of ordering quantities for which the offer or price specification is valid
   eligibleQuantity?: QuantitativeValue;

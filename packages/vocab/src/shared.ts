@@ -34,7 +34,7 @@ export interface QuantitativeValue {
 export type EncodingImage = "Gif" | "Jpeg" | "Png" | "Svg";
 
 export interface ImageObject {
-  name?: String;
+  name?: string;
   content: CID;
   contentSize?: number;
   encodingFormat: EncodingImage;

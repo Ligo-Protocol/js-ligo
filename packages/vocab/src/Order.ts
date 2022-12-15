@@ -19,8 +19,8 @@ export interface Order {
   paymentMethod: LigoPaymentMethod;
 
   // An identifier for the method of payment used. See specific payment method for usage
-  paymentMethodId?: String;
+  paymentMethodId?: string;
 
   // The URL for sending a payment. See specific payment method for usage
-  paymentUrl?: String;
+  paymentUrl?: string;
 }

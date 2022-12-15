@@ -13,14 +13,14 @@ export interface LigoSafeEscrow {
   // Account ID of seller to be signer on Safe
   sellerSignerAccountId: AccountID;
 
-  // Amount to pay deployer of Safe. Equivalent to `payment` in `SafeAccountConfig`
+  // Amount to pay deployer of Safe. Equivalent to `payment` in `SafeAccountConfig`
   deploymentPaymentAmount: number;
 
-  // Receiver of payment to deploy Safe. Equivalent to `paymentReceiver` in `SafeAccountConfig`
+  // Receiver of payment to deploy Safe. Equivalent to `paymentReceiver` in `SafeAccountConfig`
   deploymentPaymentReceiver: AccountID;
 
   // Random value for nonce on Safe deployment.
-  deploymentNonce: String;
+  deploymentNonce: string;
 
   // Account ID of Safe
   safeAccountId: AccountID;

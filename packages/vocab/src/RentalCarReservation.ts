@@ -5,7 +5,7 @@ import { PriceSpecification } from "./PriceSpecification";
 // See https://schema.org/Place
 export interface Place {
   geo?: GeoCoordinates;
-  address?: String;
+  address?: string;
 }
 
 export interface RentalCarReservation {
@@ -15,7 +15,7 @@ export interface RentalCarReservation {
   // The date and time the reservation was modified
   modifiedTime: Date;
 
-  // The entity providing the rental. Same as `seller` of `Offer`
+  // The entity providing the rental. Same as `seller` of `Offer`
   provider: DID;
 
   // The vehicle being reserved

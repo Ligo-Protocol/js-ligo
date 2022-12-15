@@ -5,17 +5,17 @@ export interface Car {
   modelDate: Date;
 
   // The Vehicle Identification Number (VIN) is a unique serial number used by the automotive industry to identify individual motor vehicles
-  vehicleIdentificationNumber: String;
+  vehicleIdentificationNumber: string;
 
   // The manufacturer of the vehicle
-  manufacturer: String;
+  manufacturer: string;
 
   // The make/brand of the vehicle.
-  brand: String;
+  brand: string;
 
   // The model of the vehicle.
-  model: String;
+  model: string;
 
   // A short text indicating the configuration of the vehicle, e.g. '5dr hatchback ST 2.5 MT 225 hp' or 'limited edition'
-  vehicleConfiguration: String;
+  vehicleConfiguration: string;
 }

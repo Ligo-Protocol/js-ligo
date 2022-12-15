@@ -5,7 +5,7 @@ import { CID } from "multiformats/cid";
 
 export interface Offer {
   // Description of the offer
-  description: String;
+  description: string;
 
   // Image(s) of specific vehicle being offered
   images: CID[];

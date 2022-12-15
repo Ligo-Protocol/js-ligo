@@ -1,11 +1,12 @@
 import { Order, schema } from "../src";
 import { CID } from "multiformats/cid";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { create } from "@ipld/schema/typed.js";
 
 describe("Order", () => {
   test("typed", async () => {
-    const data = {
+    const raw = {
       acceptedOffer: CID.parse(
         "bafybeidskjjd4zmr7oh6ku6wp72vvbxyibcli2r6if3ocdcy7jjjusvl2u"
       ),
@@ -26,7 +27,7 @@ describe("Order", () => {
       paymentUrl: "",
       paymentMethodId: "",
     };
-    const expected: Order = {
+    const typed: Order = {
       acceptedOffer: CID.parse(
         "bafybeidskjjd4zmr7oh6ku6wp72vvbxyibcli2r6if3ocdcy7jjjusvl2u"
       ),
@@ -49,9 +50,13 @@ describe("Order", () => {
       paymentMethodId: "",
     };
     const schemaTyped = create(schema, "Order");
-    const typedData = schemaTyped.toTyped(data);
+    const typedData = schemaTyped.toTyped(raw);
+    const representationData = schemaTyped.toRepresentation(typed);
 
     expect(typedData).toBeDefined();
-    expect(typedData).toEqual(expected);
+    expect(representationData).toBeDefined();
+
+    expect(typedData).toEqual(typed);
+    expect(representationData).toEqual(raw);
   }, 30000);
 });
