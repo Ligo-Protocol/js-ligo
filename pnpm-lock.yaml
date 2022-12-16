@@ -187,8 +187,10 @@ importers:
   packages/interact:
     specifiers:
       '@ipld/car': ^4.1.5
+      '@ipld/dag-cbor': ^8.0.0
+      '@ipld/dag-json': ^9.0.1
       '@js-ligo/agreements': workspace:^0.2.1
-      '@js-ligo/vocab': workspace:^0.2.1
+      '@js-ligo/vocab': workspace:^0.3.0
       '@stablelib/random': ^1.0.2
       '@types/uuid': ^8.3.4
       '@typescript-eslint/parser': ^4.9.1
@@ -199,10 +201,12 @@ importers:
       '@veramo/did-resolver': ^4.1.1
       '@veramo/key-manager': ^4.1.1
       '@veramo/kms-local': ^4.1.1
+      '@veramo/message-handler': ^4.2.0
       '@waku/core': ^0.0.3
       '@waku/create': ^0.0.3
       '@waku/interfaces': ^0.0.2
       dag-jose: ^3.0.1
+      debug: ^4.3.4
       did-jwt: ^6.8.0
       did-resolver: ^4.0.1
       dids: ^3.4.0
@@ -216,6 +220,8 @@ importers:
       uuid: ^9.0.0
     dependencies:
       '@ipld/car': 4.1.5
+      '@ipld/dag-cbor': 8.0.0
+      '@ipld/dag-json': 9.0.1
       '@js-ligo/agreements': link:../agreements
       '@js-ligo/vocab': link:../vocab
       '@stablelib/random': 1.0.2
@@ -227,9 +233,11 @@ importers:
       '@veramo/did-resolver': 4.1.1
       '@veramo/key-manager': 4.1.1
       '@veramo/kms-local': 4.1.1
+      '@veramo/message-handler': 4.2.0
       '@waku/core': 0.0.3_undici@5.10.0
       '@waku/interfaces': 0.0.2_undici@5.10.0
       dag-jose: 3.0.1
+      debug: 4.3.4
       did-resolver: 4.0.1
       dids: 3.4.0
       key-did-resolver: 2.1.2
@@ -1560,6 +1568,14 @@ packages:
     dependencies:
       cborg: 1.9.5
       multiformats: 9.9.0
+
+  /@ipld/dag-json/9.0.1:
+    resolution: {integrity: sha512-dL5Xhrk0XXoq3lSsY2LNNraH2Nxx4nlgQwSarl2J3oir2jBDQEiBDW8bjgr30ni8/epdWDhXm5mdxat8dFWwGQ==}
+    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
+    dependencies:
+      cborg: 1.9.5
+      multiformats: 10.0.2
+    dev: false
 
   /@ipld/dag-pb/2.1.18:
     resolution: {integrity: sha512-ZBnf2fuX9y3KccADURG5vb9FaOeMjFkCrNysB0PtftME/4iCTjxfaLoNq/IAh5fTqUOMXvryN6Jyka4ZGuMLIg==}
@@ -3973,6 +3989,19 @@ packages:
       - supports-color
     dev: false
 
+  /@veramo/core/4.2.0:
+    resolution: {integrity: sha512-HIqbXfCbwOAJelR5Ohsm22vr63cy6ND8Ua/+9wfMDAiymUUS7NryaJ/v6NRtnmIrNZqUMDdR9/TWdp4cCq5eBg==}
+    dependencies:
+      credential-status: 2.0.5
+      debug: 4.3.4
+      did-jwt-vc: 3.1.0
+      did-resolver: 4.0.1
+      events: 3.3.0
+      z-schema: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
   /@veramo/data-store-json/4.1.1:
     resolution: {integrity: sha512-pInoq+iVlpp6KFZ2e7ATAqrwwCmzmlVv8r8qmYqA8D6Ah/T+J9kTMYkpW/Xf5T/hleN92uFo7Rc/D4Gn6gnwhw==}
     dependencies:
@@ -4044,7 +4073,7 @@ packages:
       '@ethersproject/signing-key': 5.7.0
       '@stablelib/ed25519': 1.0.3
       '@veramo/core': 4.1.1
-      '@veramo/message-handler': 4.1.1
+      '@veramo/message-handler': 4.2.0
       '@veramo/utils': 4.1.1
       cross-fetch: 3.1.5
       debug: 4.3.4
@@ -4179,10 +4208,10 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@veramo/message-handler/4.1.1:
-    resolution: {integrity: sha512-JQCiCslSIKMD3rzLAlhkM8PbuMSPP83+GvO6aA73bJCkaPu158/ZZcPz6B1HGwJx8AMxtv+SLgRpQNsAdU3ZLQ==}
+  /@veramo/message-handler/4.2.0:
+    resolution: {integrity: sha512-bllhDlHl/4KUwlSFJjCWEHl8EqtcA+J8Va1qxJfInAeg6+XOR7ldKrrb3MVmsreuEkzUasdwQtdjHBzZCnMzcQ==}
     dependencies:
-      '@veramo/core': 4.1.1
+      '@veramo/core': 4.2.0
     transitivePeerDependencies:
       - supports-color
     dev: false
