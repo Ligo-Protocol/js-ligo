@@ -47,9 +47,9 @@ export const NOISE_KEY_2 = new Uint8Array(
 );
 
 describe("LigoInteractions", () => {
-  const agreement: LigoAgreement = {
+  const agreement = {
     order: {
-      "@id": "ipfs://fake",
+      "/": "fake",
     },
   };
 

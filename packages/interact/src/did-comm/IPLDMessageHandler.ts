@@ -9,6 +9,8 @@ import { CarWriter } from "@ipld/car";
 import * as Block from "multiformats/block";
 import { sha256 as hasher } from "multiformats/hashes/sha2";
 import { base32 } from "multiformats/bases/base32";
+import { decode as decodeDigest } from "multiformats/hashes/digest";
+import { CID } from "multiformats/cid";
 
 const debug = Debug("js-ligo:did-comm:base-ipld-message-handler");
 
@@ -40,10 +42,44 @@ export class IPLDMessageHandler extends AbstractMessageHandler {
         const { writer, out } = CarWriter.create([block.cid]);
 
         // Put message in CAR
-        await writer.put(block);
+        writer.put(block);
 
-        // TODO: Put attachments in CAR
-        await writer.close();
+        // Put attachments in CAR
+        const attachmentsToAdd: string[] = [];
+        for (const attachment of message.attachments ?? []) {
+          // Check if data is content addressed
+          if (!attachment.data.hash) {
+            continue;
+          }
+          const multiHash = decodeDigest(base32.decode(attachment.data.hash));
+          const attachmentCid = CID.createV1(dagjson.code, multiHash);
+          const attachmentBlock = await Block.encode({
+            value: dagjson.decode(json.encode(attachment.data.json)),
+            codec: dagjson,
+            hasher,
+          });
+          if (attachmentBlock.cid.toString() !== attachmentCid.toString()) {
+            debug(
+              `CID for attachment does not match. Not adding to CAR: ${attachmentCid.toString()}`
+            );
+            continue;
+          }
+
+          writer.put(attachmentBlock);
+
+          attachmentsToAdd.push(attachment.data.hash);
+        }
+
+        const remainingAttachments = message.attachments?.filter(
+          (attachment) => {
+            return (
+              !attachment.data.hash ||
+              !attachmentsToAdd.includes(attachment.data.hash)
+            );
+          }
+        );
+
+        writer.close();
 
         let raw = new Uint8Array();
         for await (const b of out) {
@@ -53,11 +89,16 @@ export class IPLDMessageHandler extends AbstractMessageHandler {
           raw = mergedArray;
         }
 
+        // Keep attachments that are not in CAR
+        message.attachments = remainingAttachments;
+
         // Set data as decoded Node
         message.data = dagJsonMsg;
 
         // Set raw to CAR
         message.raw = base32.baseEncode(raw);
+
+        context.agent.emit("IPLDMessage-received", message);
 
         let superHandled;
         try {
