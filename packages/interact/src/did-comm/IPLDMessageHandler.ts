@@ -16,6 +16,10 @@ const debug = Debug("js-ligo:did-comm:base-ipld-message-handler");
 
 type IContext = IAgentContext<IDIDManager & IKeyManager & IDIDComm>;
 
+export class IPLDMessage extends Message {
+  carReader?: CarReader;
+}
+
 /**
  * Message handler that decodes a message as IPLD DAG-JSON and bundles attachments into a CAR.
  */
@@ -81,23 +85,17 @@ export class IPLDMessageHandler extends AbstractMessageHandler {
 
         writer.close();
 
-        let raw = new Uint8Array();
-        for await (const b of out) {
-          const mergedArray = new Uint8Array(raw.length + b.length);
-          mergedArray.set(raw);
-          mergedArray.set(b, raw.length);
-          raw = mergedArray;
-        }
+        const ipldMessage = message as IPLDMessage;
 
         // Keep attachments that are not in CAR
-        message.attachments = remainingAttachments;
+        ipldMessage.attachments = remainingAttachments;
 
         // Set data as decoded Node
-        message.data = dagJsonMsg;
+        ipldMessage.data = dagJsonMsg;
 
         // Set CAR
-        message.addMetaData({ type: "ipldCar", value: base32.baseEncode(raw) });
-        context.agent.emit("IPLDMessage-received", message);
+        ipldMessage.carReader = await CarReader.fromIterable(out);
+        context.agent.emit("IPLDMessage-received", ipldMessage);
 
         let superHandled;
         try {
