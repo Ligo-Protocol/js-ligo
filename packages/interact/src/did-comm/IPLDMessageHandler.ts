@@ -5,7 +5,7 @@ import Debug from "debug";
 import * as json from "multiformats/codecs/json";
 import * as dagjson from "@ipld/dag-json";
 import * as dagcbor from "@ipld/dag-cbor";
-import { CarWriter } from "@ipld/car";
+import { CarWriter, CarReader } from "@ipld/car";
 import * as Block from "multiformats/block";
 import { sha256 as hasher } from "multiformats/hashes/sha2";
 import { base32 } from "multiformats/bases/base32";
@@ -95,9 +95,8 @@ export class IPLDMessageHandler extends AbstractMessageHandler {
         // Set data as decoded Node
         message.data = dagJsonMsg;
 
-        // Set raw to CAR
-        message.raw = base32.baseEncode(raw);
-
+        // Set CAR
+        message.addMetaData({ type: "ipldCar", value: base32.baseEncode(raw) });
         context.agent.emit("IPLDMessage-received", message);
 
         let superHandled;
