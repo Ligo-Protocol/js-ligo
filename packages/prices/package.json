@@ -1,0 +1,52 @@
+{
+  "name": "@js-ligo/prices",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build:clean": "del dist",
+    "build:js": "swc src -d ./dist --config-file ../../.swcrc",
+    "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
+    "build": "pnpm build:clean && pnpm build:types && pnpm build:js",
+    "test:it": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+    "lint": "eslint src/* test/* --fix",
+    "prepare": "pnpm build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@js-ligo/vocab": "workspace:^0.3.0"
+  },
+  "jest": {
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "@swc/jest",
+        {
+          "root": "../.."
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^4.9.1",
+    "eslint": "^6.0.0",
+    "jest-environment-node": "^29.0.3",
+    "node-fetch": "*",
+    "typescript": "^4.7.4"
+  }
+}
