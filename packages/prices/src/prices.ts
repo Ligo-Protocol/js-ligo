@@ -1,5 +1,9 @@
 import { PriceSpecification } from "@js-ligo/vocab";
 
+export interface DynamicPrice {
+  [key: string]: number;
+}
+
 export class Prices {
   /**
    * Find Total Price Static
@@ -10,6 +14,11 @@ export class Prices {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const b = new Date(givenPrice.validFrom!);
     return (await this._dateDiffInDays(a, b)) * givenPrice.price;
+  }
+
+  async findTotalDynamicPrice(givenPrice: DynamicPrice) {
+    const sum = Object.values(givenPrice).reduce((acc, val) => acc + val, 0);
+    return sum;
   }
 
   private async _dateDiffInDays(a: Date, b: Date) {
