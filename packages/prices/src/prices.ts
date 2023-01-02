@@ -58,77 +58,93 @@ export class Prices {
         }
       }
     }
+    return sum;
   }
 
   private async _totalPriceDays(
-    PriceSpecification: PriceSpecification,
-    RentalCarReservation: RentalCarReservation
+    _priceSpecification: PriceSpecification,
+    _rentalCarReservation: RentalCarReservation
   ) {
-    const a = new Date(RentalCarReservation.dropoffTime);
-    const b = new Date(RentalCarReservation.pickupTime);
+    //Filter ValidFrom and ValidThrough
+    const validF = new Date(
+      _priceSpecification.validFrom
+        ? _priceSpecification.validFrom
+        : _rentalCarReservation.pickupTime
+    );
+    const validT = new Date(
+      _priceSpecification.validThrough
+        ? _priceSpecification.validThrough
+        : _rentalCarReservation.dropoffTime
+    );
+    const dropoffT = new Date(_rentalCarReservation.dropoffTime);
+    const pickupT = new Date(_rentalCarReservation.pickupTime);
+    const a = validF >= pickupT ? validF : pickupT;
+    const b = validT <= dropoffT ? validT : dropoffT;
+
     // For discount maxValue
-    if (PriceSpecification.eligibleQuantity?.maxValue != null) {
+    if (_priceSpecification.eligibleQuantity?.maxValue != null) {
       return (
-        PriceSpecification.eligibleQuantity?.maxValue * PriceSpecification.price
+        _priceSpecification.eligibleQuantity?.maxValue *
+        _priceSpecification.price
       );
     }
     // For discount minValue
-    if (PriceSpecification.eligibleQuantity?.minValue != null) {
+    if (_priceSpecification.eligibleQuantity?.minValue != null) {
       return (
         ((await this._dateDiffInDays(a, b)) -
-          PriceSpecification.eligibleQuantity?.minValue) *
-        PriceSpecification.price
+          _priceSpecification.eligibleQuantity?.minValue) *
+        _priceSpecification.price
       );
     }
     // Normal days
-    return (await this._dateDiffInDays(a, b)) * PriceSpecification.price;
+    return (await this._dateDiffInDays(a, b)) * _priceSpecification.price;
   }
 
   private async _totalPriceKM(
-    PriceSpecification: PriceSpecification,
+    _priceSpecification: PriceSpecification,
     _ligoAgreementState: LigoAgreementState
   ) {
     if (
       _ligoAgreementState.startOdometer?.value != null &&
       _ligoAgreementState.endOdometer?.value != null
     ) {
-      if (PriceSpecification.eligibleQuantity?.minValue != null) {
+      if (_priceSpecification.eligibleQuantity?.minValue != null) {
         if (
           Math.abs(
             _ligoAgreementState.endOdometer.value -
               _ligoAgreementState.startOdometer.value
-          ) > PriceSpecification.eligibleQuantity?.minValue
+          ) > _priceSpecification.eligibleQuantity?.minValue
         )
           return (
             Math.abs(
               _ligoAgreementState.endOdometer.value -
                 _ligoAgreementState.startOdometer.value -
-                PriceSpecification.eligibleQuantity?.minValue
-            ) * PriceSpecification.price
+                _priceSpecification.eligibleQuantity?.minValue
+            ) * _priceSpecification.price
           );
       }
       return (
         Math.abs(
           _ligoAgreementState.endOdometer.value -
             _ligoAgreementState.startOdometer.value
-        ) * PriceSpecification.price
+        ) * _priceSpecification.price
       );
     }
     return;
   }
 
   private async _totalPriceHour(
-    PriceSpecification: PriceSpecification,
-    RentalCarReservation: RentalCarReservation
+    _priceSpecification: PriceSpecification,
+    _rentalCarReservation: RentalCarReservation
   ) {
-    const a = new Date(RentalCarReservation.dropoffTime);
-    const b = new Date(RentalCarReservation.pickupTime);
-    return (await this._hourDiffInDays(a, b)) * PriceSpecification.price;
+    const a = new Date(_rentalCarReservation.dropoffTime);
+    const b = new Date(_rentalCarReservation.pickupTime);
+    return (await this._hourDiffInDays(a, b)) * _priceSpecification.price;
   }
 
-  private async _totalMonthlySub(PriceSpecification: PriceSpecification) {
-    if (PriceSpecification.billingIncrement != null) {
-      return PriceSpecification.price * PriceSpecification.billingIncrement;
+  private async _totalMonthlySub(_priceSpecification: PriceSpecification) {
+    if (_priceSpecification.billingIncrement != null) {
+      return _priceSpecification.price * _priceSpecification.billingIncrement;
     }
     return;
   }
