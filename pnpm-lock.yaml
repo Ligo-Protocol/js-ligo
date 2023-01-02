@@ -251,6 +251,7 @@ importers:
       '@typescript-eslint/parser': ^4.9.1
       eslint: ^6.0.0
       jest-environment-node: ^29.0.3
+      multiformats: ^9.9.0
       node-fetch: '*'
       typescript: ^4.7.4
     dependencies:
@@ -259,6 +260,7 @@ importers:
       '@typescript-eslint/parser': 4.33.0_ka3v2sz4nenxxmg4373y7syisy
       eslint: 6.8.0
       jest-environment-node: 29.0.3
+      multiformats: 9.9.0
       node-fetch: 3.2.10
       typescript: 4.8.3
 

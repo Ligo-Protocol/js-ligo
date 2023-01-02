@@ -1,35 +1,261 @@
-import { PriceSpecification } from "@js-ligo/vocab";
 import { Prices } from "../src";
-import { DynamicPrice } from "../src";
+import {
+  LigoAgreementState,
+  Offer,
+  RentalCarReservation,
+} from "@js-ligo/vocab";
+import { CID } from "multiformats/cid";
+import * as json from "multiformats/codecs/json";
+import { sha256 } from "multiformats/hashes/sha2";
+
+const bytes = json.encode({ hello: "world" });
+const hash = await sha256.digest(bytes);
+const cid = CID.create(1, json.code, hash);
 
 describe("prices", () => {
-  const givenPrice: PriceSpecification = {
-    price: 30,
-    priceCurrency: "USD",
-    validFrom: "2017-01-01",
-    validThrough: "2017-03-01",
-  };
-  const givenDynamicPrice: DynamicPrice = {
-    "2017-01-01": 200,
-    "2017-01-02": 300,
-    "2017-01-03": 250,
+  /**
+   * Find Total Price
+   *
+   **/
+  // Case 1: Base Price per day
+  const case1: Offer["priceSpecifications"] = [
+    {
+      price: 25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+  ];
+  // Case 2: Base price per kilometer
+  const case2: Offer["priceSpecifications"] = [
+    {
+      price: 0.25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "KMT",
+      },
+    },
+  ];
+  // Case 3: Base price per day + X$ per kilometer over Y range
+  const case3: Offer["priceSpecifications"] = [
+    {
+      price: 25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+    {
+      price: 0.25,
+      priceCurrency: "USD",
+      eligibleQuantity: {
+        minValue: 1000,
+        unitCode: "KMT",
+      },
+      referenceQuantity: {
+        value: 1,
+        unitCode: "KMT",
+      },
+    },
+  ];
+  // Case 4: Base price per hour
+  const case4: Offer["priceSpecifications"] = [
+    {
+      price: 5,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "HUR",
+      },
+    },
+  ];
+  // Case 5: Different price per day
+  const case5: Offer["priceSpecifications"] = [
+    {
+      price: 25,
+      priceCurrency: "USD",
+      validFrom: "2022-07-01T00:00:00Z",
+      validThrough: "2022-07-10T00:00:00Z",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+    {
+      price: 30,
+      priceCurrency: "USD",
+      validFrom: "2022-07-10T00:00:00Z",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+  ];
+  // Case 6: Monthly Subscription of X$
+  const case6: Offer["priceSpecifications"] = [
+    {
+      price: 1000,
+      priceCurrency: "USD",
+      billingIncrement: 1,
+      referenceQuantity: {
+        unitCode: "MON",
+      },
+    },
+  ];
+  // Case 7: Discount for Y+ days
+  const case7: Offer["priceSpecifications"] = [
+    {
+      price: 25,
+      priceCurrency: "USD",
+      eligibleQuantity: {
+        maxValue: 3,
+        unitCode: "DAY",
+      },
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+    {
+      price: 20,
+      priceCurrency: "USD",
+      eligibleQuantity: {
+        minValue: 3,
+        unitCode: "DAY",
+      },
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+  ];
+
+  const rentalCarReservation: RentalCarReservation = {
+    pickupTime: "2022-07-02T00:00:00Z",
+    dropoffTime: "2022-07-15T00:00:00Z",
+    bookingTime: "",
+    modifiedTime: "",
+    provider: "",
+    underName: "",
+    reservationFor: cid,
+    totalPrice: {
+      price: 20,
+      priceCurrency: "USD",
+    },
+    dropoffLocation: {
+      address: "CA",
+    },
+    pickupLocation: {
+      address: "CA",
+    },
   };
 
-  describe("findTotalStaticPrice", () => {
-    test("total static price", async () => {
+  const ligoAgreementState: LigoAgreementState = {
+    startOdometer: {
+      value: 1000,
+    },
+    endOdometer: {
+      value: 2000,
+    },
+  };
+
+  //Test Cases
+
+  describe("Case 1: Base Price per day", () => {
+    test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.findTotalStaticPrice(givenPrice);
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case1,
+        rentalCarReservation,
+        ligoAgreementState
+      );
       console.log(totalPrice);
       expect(totalPrice).toBeDefined();
       expect(typeof totalPrice === "number").toBe(true);
     }, 30000);
   });
 
-  describe("findTotalDynamicPrice", () => {
-    test("total dynamic price", async () => {
+  describe("Case 2: Base price per kilometer", () => {
+    test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.findTotalDynamicPrice(
-        givenDynamicPrice
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case2,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log(totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(typeof totalPrice === "number").toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 3: Base price per day + X$ per kilometer over Y range", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case3,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log(totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(typeof totalPrice === "number").toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 4: Base price per hour", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case4,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log(totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(typeof totalPrice === "number").toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 5: Different price per day", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case5,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log(totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(typeof totalPrice === "number").toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 6: Monthly Subscription of X$", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case6,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log(totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(typeof totalPrice === "number").toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 7: Discount for Y+ days", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.CalculateTotalPrice(
+        case7,
+        rentalCarReservation,
+        ligoAgreementState
       );
       console.log(totalPrice);
       expect(totalPrice).toBeDefined();

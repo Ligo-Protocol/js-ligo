@@ -46,6 +46,7 @@
     "@typescript-eslint/parser": "^4.9.1",
     "eslint": "^6.0.0",
     "jest-environment-node": "^29.0.3",
+    "multiformats": "^9.9.0",
     "node-fetch": "*",
     "typescript": "^4.7.4"
   }
