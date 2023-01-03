@@ -1,8 +1,9 @@
 /* eslint-disable eqeqeq */
-import { PriceSpecification } from "@js-ligo/vocab";
-import { LigoAgreementState } from "@js-ligo/vocab";
-import { RentalCarReservation } from "@js-ligo/vocab";
-import { Offer } from "@js-ligo/vocab";
+import {
+  LigoAgreementState,
+  PriceSpecification,
+  RentalCarReservation,
+} from "@js-ligo/vocab";
 
 export class Prices {
   /**
@@ -15,8 +16,8 @@ export class Prices {
   // Case 6: Monthly Subscription of X$
   // Case 7: Discount for Y+ days
   */
-  async CalculateTotalPrice(
-    _priceSpecifications: Offer["priceSpecifications"],
+  async calculateTotalPrice(
+    _priceSpecifications: PriceSpecification[],
     _rentalCarReservation: RentalCarReservation,
     _ligoAgreementState: LigoAgreementState
   ) {

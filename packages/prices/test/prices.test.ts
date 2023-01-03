@@ -1,7 +1,7 @@
 import { Prices } from "../src";
 import {
   LigoAgreementState,
-  Offer,
+  PriceSpecification,
   RentalCarReservation,
 } from "@js-ligo/vocab";
 import { CID } from "multiformats/cid";
@@ -18,7 +18,7 @@ describe("prices", () => {
    *
    **/
   // Case 1: Base Price per day
-  const case1: Offer["priceSpecifications"] = [
+  const case1: PriceSpecification[] = [
     {
       price: 25,
       priceCurrency: "USD",
@@ -29,7 +29,7 @@ describe("prices", () => {
     },
   ];
   // Case 2: Base price per kilometer
-  const case2: Offer["priceSpecifications"] = [
+  const case2: PriceSpecification[] = [
     {
       price: 0.25,
       priceCurrency: "USD",
@@ -40,7 +40,7 @@ describe("prices", () => {
     },
   ];
   // Case 3: Base price per day + X$ per kilometer over Y range
-  const case3: Offer["priceSpecifications"] = [
+  const case3: PriceSpecification[] = [
     {
       price: 25,
       priceCurrency: "USD",
@@ -63,7 +63,7 @@ describe("prices", () => {
     },
   ];
   // Case 4: Base price per hour
-  const case4: Offer["priceSpecifications"] = [
+  const case4: PriceSpecification[] = [
     {
       price: 5,
       priceCurrency: "USD",
@@ -74,7 +74,7 @@ describe("prices", () => {
     },
   ];
   // Case 5: Different price per day
-  const case5: Offer["priceSpecifications"] = [
+  const case5: PriceSpecification[] = [
     {
       price: 25,
       priceCurrency: "USD",
@@ -96,7 +96,7 @@ describe("prices", () => {
     },
   ];
   // Case 6: Monthly Subscription of X$
-  const case6: Offer["priceSpecifications"] = [
+  const case6: PriceSpecification[] = [
     {
       price: 1000,
       priceCurrency: "USD",
@@ -107,7 +107,7 @@ describe("prices", () => {
     },
   ];
   // Case 7: Discount for Y+ days
-  const case7: Offer["priceSpecifications"] = [
+  const case7: PriceSpecification[] = [
     {
       price: 25,
       priceCurrency: "USD",
@@ -168,7 +168,7 @@ describe("prices", () => {
   describe("Case 1: Base Price per day", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case1,
         rentalCarReservation,
         ligoAgreementState
@@ -182,7 +182,7 @@ describe("prices", () => {
   describe("Case 2: Base price per kilometer", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case2,
         rentalCarReservation,
         ligoAgreementState
@@ -196,7 +196,7 @@ describe("prices", () => {
   describe("Case 3: Base price per day + X$ per kilometer over Y range", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case3,
         rentalCarReservation,
         ligoAgreementState
@@ -210,7 +210,7 @@ describe("prices", () => {
   describe("Case 4: Base price per hour", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case4,
         rentalCarReservation,
         ligoAgreementState
@@ -224,7 +224,7 @@ describe("prices", () => {
   describe("Case 5: Different price per day", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case5,
         rentalCarReservation,
         ligoAgreementState
@@ -238,7 +238,7 @@ describe("prices", () => {
   describe("Case 6: Monthly Subscription of X$", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case6,
         rentalCarReservation,
         ligoAgreementState
@@ -252,7 +252,7 @@ describe("prices", () => {
   describe("Case 7: Discount for Y+ days", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
-      const totalPrice = await priceFinder.CalculateTotalPrice(
+      const totalPrice = await priceFinder.calculateTotalPrice(
         case7,
         rentalCarReservation,
         ligoAgreementState
