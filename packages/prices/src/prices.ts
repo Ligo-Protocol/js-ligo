@@ -33,30 +33,25 @@ export class Prices {
       } else if (
         _priceSpecifications[i].referenceQuantity?.unitCode === "KMT"
       ) {
-        const result = this._totalPriceKM(
-          _priceSpecifications[i],
-          _ligoAgreementState
-        );
-        if (typeof result == "number") {
-          sum = sum + result;
-        }
+        sum =
+          sum +
+          (await this._totalPriceKM(
+            _priceSpecifications[i],
+            _ligoAgreementState
+          ));
       } else if (
         _priceSpecifications[i].referenceQuantity?.unitCode === "HUR"
       ) {
-        const result = this._totalPriceHour(
-          _priceSpecifications[i],
-          _rentalCarReservation
-        );
-        if (typeof result == "number") {
-          sum = sum + result;
-        }
+        sum =
+          sum +
+          (await this._totalPriceHour(
+            _priceSpecifications[i],
+            _rentalCarReservation
+          ));
       } else if (
         _priceSpecifications[i].referenceQuantity?.unitCode === "MON"
       ) {
-        const result = this._totalMonthlySub(_priceSpecifications[i]);
-        if (typeof result == "number") {
-          sum = sum + result;
-        }
+        sum = sum + (await this._totalMonthlySub(_priceSpecifications[i]));
       }
     }
     return sum;
@@ -115,7 +110,7 @@ export class Prices {
             _ligoAgreementState.endOdometer.value -
               _ligoAgreementState.startOdometer.value
           ) > _priceSpecification.eligibleQuantity?.minValue
-        )
+        ) {
           return (
             Math.abs(
               _ligoAgreementState.endOdometer.value -
@@ -123,15 +118,17 @@ export class Prices {
                 _priceSpecification.eligibleQuantity?.minValue
             ) * _priceSpecification.price
           );
+        }
       }
-      return (
-        Math.abs(
-          _ligoAgreementState.endOdometer.value -
-            _ligoAgreementState.startOdometer.value
-        ) * _priceSpecification.price
-      );
-    }
-    return;
+      {
+        return (
+          Math.abs(
+            _ligoAgreementState.endOdometer.value -
+              _ligoAgreementState.startOdometer.value
+          ) * _priceSpecification.price
+        );
+      }
+    } else return 0;
   }
 
   private async _totalPriceHour(
@@ -140,14 +137,17 @@ export class Prices {
   ) {
     const a = new Date(_rentalCarReservation.dropoffTime);
     const b = new Date(_rentalCarReservation.pickupTime);
-    return (await this._hourDiffInDays(a, b)) * _priceSpecification.price;
+    return (
+      (await Math.abs(await this._hourDiffInDays(a, b))) *
+      _priceSpecification.price
+    );
   }
 
   private async _totalMonthlySub(_priceSpecification: PriceSpecification) {
     if (_priceSpecification.billingIncrement != null) {
       return _priceSpecification.price * _priceSpecification.billingIncrement;
     }
-    return;
+    return 0;
   }
 
   private async _dateDiffInDays(a: Date, b: Date) {

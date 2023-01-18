@@ -79,7 +79,7 @@ describe("prices", () => {
       price: 25,
       priceCurrency: "USD",
       validFrom: "2022-07-01T00:00:00Z",
-      validThrough: "2022-07-10T00:00:00Z",
+      validThrough: "2022-07-05T00:00:00Z",
       referenceQuantity: {
         value: 1,
         unitCode: "DAY",
@@ -88,7 +88,7 @@ describe("prices", () => {
     {
       price: 30,
       priceCurrency: "USD",
-      validFrom: "2022-07-10T00:00:00Z",
+      validFrom: "2022-07-05T00:00:00Z",
       referenceQuantity: {
         value: 1,
         unitCode: "DAY",
@@ -173,9 +173,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 1", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 325).toBe(true);
     }, 30000);
   });
 
@@ -187,9 +187,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 2", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 250).toBe(true);
     }, 30000);
   });
 
@@ -201,9 +201,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 3", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 575).toBe(true);
     }, 30000);
   });
 
@@ -215,9 +215,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 4", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 1560).toBe(true);
     }, 30000);
   });
 
@@ -229,9 +229,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 5", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 375).toBe(true);
     }, 30000);
   });
 
@@ -243,9 +243,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 6", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 1000).toBe(true);
     }, 30000);
   });
 
@@ -257,9 +257,9 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log(totalPrice);
+      console.log("case 7", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(typeof totalPrice === "number").toBe(true);
+      expect(totalPrice === 275).toBe(true);
     }, 30000);
   });
 });
