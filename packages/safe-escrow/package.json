@@ -31,6 +31,7 @@
     "@js-ligo/agreements": "workspace:^0.2.0",
     "@js-ligo/interact": "workspace:^0.2.0",
     "@js-ligo/vocab": "workspace:^0.2.0",
+    "@safe-global/safe-core-sdk-types": "^1.8.0",
     "caip": "^1.1.0",
     "ethers": "^5.7.1"
   },

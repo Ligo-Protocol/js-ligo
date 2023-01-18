@@ -256,6 +256,7 @@ importers:
       '@js-ligo/agreements': workspace:^0.2.0
       '@js-ligo/interact': workspace:^0.2.0
       '@js-ligo/vocab': workspace:^0.2.0
+      '@safe-global/safe-core-sdk-types': ^1.8.0
       caip: ^1.1.0
       ethers: ^5.7.1
     dependencies:
@@ -266,6 +267,7 @@ importers:
       '@js-ligo/agreements': link:../agreements
       '@js-ligo/interact': link:../interact
       '@js-ligo/vocab': link:../vocab
+      '@safe-global/safe-core-sdk-types': 1.8.0
       caip: 1.1.0
       ethers: 5.7.1
 
@@ -1336,6 +1338,12 @@ packages:
 
   /@gnosis.pm/safe-deployments/1.16.0:
     resolution: {integrity: sha512-5Wakso6SiulstuZfz3gH6yME8Q50BT5dVxIfgWz4vzOmyyqmAVstMd0VIwyw6IDee0gU4mHKZjhD3UXPKEvRCw==}
+    dependencies:
+      semver: 7.3.7
+    dev: false
+
+  /@gnosis.pm/safe-deployments/1.17.0:
+    resolution: {integrity: sha512-vfl13IuSMqJZxTPraRcKZqJcaSCDWTt/JXH6VURa8LHMYATOqd96IGbqqOKRPAgSzAyXpA2thOD4YUQ0X8XKyQ==}
     dependencies:
       semver: 7.3.7
     dev: false
@@ -3533,6 +3541,19 @@ packages:
 
   /@protobufjs/utf8/1.1.0:
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
+
+  /@safe-global/safe-core-sdk-types/1.8.0:
+    resolution: {integrity: sha512-1oLQFmjiSdyxkUFOyVzspC2KXWPyOI3ekPqJFAcYARd9mm6lVoFORyynr2dIRxjrV3hVuvc0gZVI22ADSAC2qA==}
+    dependencies:
+      '@ethersproject/bignumber': 5.7.0
+      '@ethersproject/contracts': 5.7.0
+      '@gnosis.pm/safe-deployments': 1.17.0
+      web3-core: 1.8.1
+      web3-utils: 1.8.1
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+    dev: false
 
   /@sideway/address/4.1.4:
     resolution: {integrity: sha512-7vwq+rOHVWjyXxVlR76Agnvhy8I9rpzjosTESvmhNeXOXdZZB15Fl+TI9x1SiHZH5Jv2wTGduSxFDIaq0m3DUw==}
