@@ -32,7 +32,7 @@ export class Prices {
           ));
       } else if (
         _priceSpecifications[i].referenceQuantity?.unitCode === "KMT" ||
-        _priceSpecifications[i].referenceQuantity?.unitCode === "MIL"
+        _priceSpecifications[i].referenceQuantity?.unitCode === "SMI"
       ) {
         sum =
           sum +
