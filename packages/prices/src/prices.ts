@@ -31,7 +31,8 @@ export class Prices {
             _rentalCarReservation
           ));
       } else if (
-        _priceSpecifications[i].referenceQuantity?.unitCode === "KMT"
+        _priceSpecifications[i].referenceQuantity?.unitCode === "KMT" ||
+        _priceSpecifications[i].referenceQuantity?.unitCode === "MIL"
       ) {
         sum =
           sum +
@@ -109,13 +110,14 @@ export class Prices {
           Math.abs(
             _ligoAgreementState.endOdometer.value -
               _ligoAgreementState.startOdometer.value
-          ) > _priceSpecification.eligibleQuantity?.minValue
+          ) >= _priceSpecification.eligibleQuantity?.minValue
         ) {
           return (
             Math.abs(
-              _ligoAgreementState.endOdometer.value -
-                _ligoAgreementState.startOdometer.value -
-                _priceSpecification.eligibleQuantity?.minValue
+              Math.abs(
+                _ligoAgreementState.endOdometer.value -
+                  _ligoAgreementState.startOdometer.value
+              ) - _priceSpecification.eligibleQuantity?.minValue
             ) * _priceSpecification.price
           );
         }

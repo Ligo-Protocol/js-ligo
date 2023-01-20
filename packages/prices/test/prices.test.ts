@@ -95,12 +95,23 @@ describe("prices", () => {
       },
     },
   ];
-  // Case 6: Monthly Subscription of X$
-  const case6: PriceSpecification[] = [
+  // Case 6.1: Monthly Subscription of X$
+  const case6_1: PriceSpecification[] = [
     {
       price: 1000,
       priceCurrency: "USD",
       billingIncrement: 1,
+      referenceQuantity: {
+        unitCode: "MON",
+      },
+    },
+  ];
+  // Case 6.2: Monthly Subscription of X$
+  const case6_2: PriceSpecification[] = [
+    {
+      price: 1000,
+      priceCurrency: "USD",
+      billingIncrement: 5,
       referenceQuantity: {
         unitCode: "MON",
       },
@@ -203,7 +214,7 @@ describe("prices", () => {
       );
       console.log("case 3", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(totalPrice === 575).toBe(true);
+      expect(totalPrice === 325).toBe(true);
     }, 30000);
   });
 
@@ -235,17 +246,30 @@ describe("prices", () => {
     }, 30000);
   });
 
-  describe("Case 6: Monthly Subscription of X$", () => {
+  describe("Case 6.1: Monthly Subscription of X$", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
       const totalPrice = await priceFinder.calculateTotalPrice(
-        case6,
+        case6_1,
         rentalCarReservation,
         ligoAgreementState
       );
       console.log("case 6", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 1000).toBe(true);
+    }, 30000);
+  });
+  describe("Case 6.2: Monthly Subscription of X$ multiple months", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case6_2,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log("case 6", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 5000).toBe(true);
     }, 30000);
   });
 
