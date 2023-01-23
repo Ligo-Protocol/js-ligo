@@ -39,7 +39,18 @@ describe("prices", () => {
       },
     },
   ];
-  // Case 3: Base price per day + X$ per kilometer over Y range
+  // Case 2: Base price per mile
+  const case2_2: PriceSpecification[] = [
+    {
+      price: 0.25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "SMI",
+      },
+    },
+  ];
+  // Case 3.1 & 3.2: Base price per day + X$ per kilometer over Y range
   const case3: PriceSpecification[] = [
     {
       price: 25,
@@ -54,6 +65,30 @@ describe("prices", () => {
       priceCurrency: "USD",
       eligibleQuantity: {
         minValue: 1000,
+        unitCode: "KMT",
+      },
+      referenceQuantity: {
+        value: 1,
+        unitCode: "KMT",
+      },
+    },
+  ];
+
+  // Case 3.3: Base price per day + X$ per kilometer over Y range mileage greater than 0$
+  const case3_3: PriceSpecification[] = [
+    {
+      price: 25,
+      priceCurrency: "USD",
+      referenceQuantity: {
+        value: 1,
+        unitCode: "DAY",
+      },
+    },
+    {
+      price: 0.25,
+      priceCurrency: "USD",
+      eligibleQuantity: {
+        minValue: 500,
         unitCode: "KMT",
       },
       referenceQuantity: {
@@ -165,6 +200,26 @@ describe("prices", () => {
     },
   };
 
+  const rentalCarReservation2: RentalCarReservation = {
+    pickupTime: "2022-07-02T00:00:00Z",
+    dropoffTime: "2022-09-15T00:00:00Z",
+    bookingTime: "",
+    modifiedTime: "",
+    provider: "",
+    underName: "",
+    reservationFor: cid,
+    totalPrice: {
+      price: 20,
+      priceCurrency: "USD",
+    },
+    dropoffLocation: {
+      address: "CA",
+    },
+    pickupLocation: {
+      address: "CA",
+    },
+  };
+
   const ligoAgreementState: LigoAgreementState = {
     startOdometer: {
       value: 1000,
@@ -190,7 +245,7 @@ describe("prices", () => {
     }, 30000);
   });
 
-  describe("Case 2: Base price per kilometer", () => {
+  describe("Case 2.1 : Base price per kilometer", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
       const totalPrice = await priceFinder.calculateTotalPrice(
@@ -198,13 +253,27 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 2", totalPrice);
+      console.log("case 2.1", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 250).toBe(true);
     }, 30000);
   });
 
-  describe("Case 3: Base price per day + X$ per kilometer over Y range", () => {
+  describe("Case 2.2 : Base price per mile", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case2_2,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log("case 2.2", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 250).toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 3.1 : Base price per day + X$ per kilometer over Y range", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
       const totalPrice = await priceFinder.calculateTotalPrice(
@@ -212,9 +281,37 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 3", totalPrice);
+      console.log("case 3.1", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 325).toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 3.2 : Base price per day + X$ per kilometer over Y range for multiple months", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case3,
+        rentalCarReservation2,
+        ligoAgreementState
+      );
+      console.log("case 3.2", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 1875).toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 3.3 : Base price per day + X$ per kilometer over Y range mileage more than 0$", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case3_3,
+        rentalCarReservation,
+        ligoAgreementState
+      );
+      console.log("case 3.3", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 450).toBe(true);
     }, 30000);
   });
 
@@ -232,7 +329,7 @@ describe("prices", () => {
     }, 30000);
   });
 
-  describe("Case 5: Different price per day", () => {
+  describe("Case 5.1 : Different price per day", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
       const totalPrice = await priceFinder.calculateTotalPrice(
@@ -240,9 +337,23 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 5", totalPrice);
+      console.log("case 5.1", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 375).toBe(true);
+    }, 30000);
+  });
+
+  describe("Case 5.2 : Different price per day for multiple months", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case5,
+        rentalCarReservation2,
+        ligoAgreementState
+      );
+      console.log("case 5.2", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 2235).toBe(true);
     }, 30000);
   });
 
@@ -254,7 +365,7 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 6", totalPrice);
+      console.log("case 6.1", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 1000).toBe(true);
     }, 30000);
@@ -267,13 +378,13 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 6", totalPrice);
+      console.log("case 6.2", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 5000).toBe(true);
     }, 30000);
   });
 
-  describe("Case 7: Discount for Y+ days", () => {
+  describe("Case 7.1 : Discount for Y+ days", () => {
     test("Total Price", async () => {
       const priceFinder = new Prices();
       const totalPrice = await priceFinder.calculateTotalPrice(
@@ -281,9 +392,22 @@ describe("prices", () => {
         rentalCarReservation,
         ligoAgreementState
       );
-      console.log("case 7", totalPrice);
+      console.log("case 7.1", totalPrice);
       expect(totalPrice).toBeDefined();
       expect(totalPrice === 275).toBe(true);
+    }, 30000);
+  });
+  describe("Case 7.2 : Discount for Y+ days for multiple months", () => {
+    test("Total Price", async () => {
+      const priceFinder = new Prices();
+      const totalPrice = await priceFinder.calculateTotalPrice(
+        case7,
+        rentalCarReservation2,
+        ligoAgreementState
+      );
+      console.log("case 7.2", totalPrice);
+      expect(totalPrice).toBeDefined();
+      expect(totalPrice === 1515).toBe(true);
     }, 30000);
   });
 });
