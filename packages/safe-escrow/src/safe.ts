@@ -1,107 +1,188 @@
-import EthersAdapter from "@gnosis.pm/safe-ethers-lib";
-import { ethers, BigNumber } from "ethers";
+import EthersAdapter from "@safe-global/safe-ethers-lib"; // EthersTransactionOptions,
+import { BigNumber, ethers } from "ethers";
 import {
   SafeFactory,
   SafeAccountConfig,
   SafeDeploymentConfig,
-} from "@gnosis.pm/safe-core-sdk";
-import { JsonRpcProvider } from "@ethersproject/providers";
-import { AccountId } from "caip";
-import { SafeTransactionDataPartial } from "@safe-global/safe-core-sdk-types";
+} from "@safe-global/safe-core-sdk";
+import Safe from "@safe-global/safe-core-sdk";
+import {
+  OperationType,
+  SafeTransactionDataPartial,
+} from "@safe-global/safe-core-sdk-types";
+import SafeServiceClient from "@safe-global/safe-service-client";
+
+// https://safe-transaction-goerli.safe.global/
 
 export class LigoSafeEscrow {
-  #provider: JsonRpcProvider;
-  #account: AccountId;
-  #ethAdapter?: EthersAdapter;
-  #safeFactory?: SafeFactory;
-
-  constructor(provider: JsonRpcProvider, account: AccountId) {
-    this.#provider = provider;
-    this.#account = account;
-  }
-
-  async connect() {
-    // Setup Safe Factory
-    /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
-    // @ts-ignore
-    this.#ethAdapter = new EthersAdapter.default({
+  // Connect to instantiate before deployment
+  async deploySafe(
+    signer: any,
+    owner1: string,
+    owner2: string,
+    saltNonce: string
+  ) {
+    // Create EthAdapter instance
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const ethAdapter = new EthersAdapter.default({
       ethers,
-      signer: this.#provider.getSigner(this.#account.address),
+      signerOrProvider: signer,
     });
-    this.#safeFactory = await SafeFactory.create({
-      /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-      ethAdapter: this.#ethAdapter!,
-    });
-  }
 
-  // Renter can predict and deposit trip payment to predicted address
-  async predictAndDeposit(accounts: AccountId[], saltNonce: string) {
-    if (!this.#safeFactory) {
-      throw new Error("LigoSafeEscrow is not connected");
-    }
+    // Create SafeFactory instance
+    const safeFactory = await SafeFactory.create({ ethAdapter });
+
+    // Config of the deployed Safe
     const safeAccountConfig: SafeAccountConfig = {
-      owners: accounts.map((a) => a.address),
-      threshold: accounts.length,
+      owners: [owner1, owner2],
+      threshold: 2,
     };
     const safeDeploymentConfig: SafeDeploymentConfig = {
       saltNonce: saltNonce,
     };
-    const safeAddress = await this.#safeFactory.predictSafeAddress({
+
+    const predictedDeployAddress = await safeFactory.predictSafeAddress({
       safeAccountConfig,
       safeDeploymentConfig,
     });
+    console.log(predictedDeployAddress);
 
-    //Deploy Safe
-    const safeSdk = await this.#safeFactory.deploySafe({
+    function callback(txHash: string) {
+      console.log("Transaction hash", txHash);
+    }
+
+    const safe = await safeFactory.deploySafe({
       safeAccountConfig,
       safeDeploymentConfig,
+      callback,
     });
-    return { safeSdk, safeAddress };
+    return safe.getAddress();
   }
 
-  //Create transaction
-  async createSafeTransaction(safeSdk: any) {
-    const safeTransactionData: SafeTransactionDataPartial = {
-      to: "0x<address>",
-      value: "<eth_value_in_wei>",
-      data: "0x<data>",
-    };
-    const safeTransaction = await (
-      await safeSdk
-    ).createTransaction({ safeTransactionData });
-    return safeTransaction;
-  }
-
-  //Sign transaction
-  async signSafeTransaction(safeSdk: any, safeTransaction: any) {
-    const signedSafeTransaction = await safeSdk.signTransaction(
-      safeTransaction
-    );
-    return signedSafeTransaction;
-  }
-
-  //Execute transaction using Relayer = 3rd owner
-  async executeSafeTransaction(
-    safeSdk2: any,
-    safeAddress: any,
-    safeTransaction: any
+  // Send amount to deployedSafe
+  async depositNative(
+    signer: any,
+    recipientAddress: string,
+    amount: BigNumber
   ) {
-    // const ethAdapterOwner3 = new EthersAdapter({ ethers, signerOrProvider: owner3 })
-    const safeSdk3 = await safeSdk2.connect({
-      ethAdapter: this.#ethAdapter,
-      safeAddress,
-    });
-    const executeTxResponse = await safeSdk3.executeTransaction(
-      safeTransaction
-    );
-    await executeTxResponse.transactionResponse?.wait();
-  }
-
-  async depositNative(paymentMethodId: AccountId, amount: BigNumber) {
-    const signer = this.#provider.getSigner(this.#account.address);
     return await signer.sendTransaction({
-      to: paymentMethodId.address,
+      to: recipientAddress,
       value: amount,
     });
+  }
+
+  //Connect post deployment for Propose, Confirm and Execute transaction
+  async connectPostDeploy(
+    signer: any,
+    safeAddress: string,
+    txServiceUrl: string
+  ) {
+    // Create EthAdapter instance
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const ethAdapter = new EthersAdapter.default({
+      ethers,
+      signerOrProvider: signer,
+    });
+
+    // Create Safe instance
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const safe = await Safe.default.create({
+      ethAdapter,
+      safeAddress: safeAddress,
+    });
+
+    // Create Safe Service Client instance
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const service = new SafeServiceClient.default({
+      txServiceUrl: txServiceUrl,
+      ethAdapter,
+    });
+
+    return { safe, service };
+  }
+
+  //Create and propose transaction
+  async createAndProposeTransaction(
+    signer: any,
+    safe: Safe,
+    service: SafeServiceClient,
+    recipientAddress: string,
+    eth_value_in_wei: string
+  ) {
+    const safeTransactionData: SafeTransactionDataPartial = {
+      to: recipientAddress,
+      value: eth_value_in_wei, // 1 wei
+      data: "0x",
+      operation: OperationType.Call,
+    };
+    const safeTransaction = await safe.createTransaction({
+      safeTransactionData,
+    });
+
+    const senderAddress = await signer.getAddress();
+    const safeTxHash = await safe.getTransactionHash(safeTransaction);
+    const signature = await safe.signTransactionHash(safeTxHash);
+    const safeAddress = await safe.getAddress();
+    const senderSignature = signature.data;
+
+    // Propose transaction to the service
+    await service.proposeTransaction({
+      safeAddress: safeAddress,
+      safeTransactionData: safeTransaction.data,
+      safeTxHash,
+      senderAddress,
+      senderSignature: senderSignature,
+    });
+
+    return { safeAddress, safeTxHash, senderAddress, senderSignature };
+  }
+
+  // Confirm transaction
+  async confirmTransaction(
+    signer: any,
+    safe: Safe,
+    service: SafeServiceClient,
+    safeTxHash: string
+  ) {
+    const signature = await safe.signTransactionHash(safeTxHash);
+
+    // Confirm the Safe transaction
+    const signatureResponse = await service.confirmTransaction(
+      safeTxHash,
+      signature.data
+    );
+
+    const signerAddress = await signer.getAddress();
+    const responseSignature = signatureResponse.signature;
+    return { safeTxHash, signerAddress, responseSignature };
+  }
+
+  // Execute transaction
+  async executeTransaction(
+    service: SafeServiceClient,
+    safe: Safe,
+    txHash: string
+  ) {
+    // Get the transaction
+    const safeTransaction = await service.getTransaction(txHash);
+
+    const isTxExecutable = await safe.isValidTransaction(safeTransaction);
+
+    if (isTxExecutable) {
+      // Execute the transaction
+      const txResponse = await safe.executeTransaction(safeTransaction);
+      const contractReceipt = await txResponse.transactionResponse?.wait();
+
+      console.log("Transaction executed.");
+      console.log("- Transaction hash:", contractReceipt?.transactionHash);
+      return contractReceipt?.transactionHash;
+    } else {
+      console.log("Transaction invalid. Transaction was not executed.");
+      return;
+    }
   }
 }
