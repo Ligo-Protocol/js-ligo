@@ -112,23 +112,47 @@ export class Prices {
               _ligoAgreementState.startOdometer.value
           ) >= _priceSpecification.eligibleQuantity?.minValue
         ) {
-          return (
-            Math.abs(
+          if (_priceSpecification.referenceQuantity?.unitCode == "SMI") {
+            return (
               Math.abs(
-                _ligoAgreementState.endOdometer.value -
-                  _ligoAgreementState.startOdometer.value
-              ) - _priceSpecification.eligibleQuantity?.minValue
-            ) * _priceSpecification.price
-          );
+                Math.abs(
+                  _ligoAgreementState.endOdometer.value -
+                    _ligoAgreementState.startOdometer.value
+                ) - _priceSpecification.eligibleQuantity?.minValue
+              ) *
+              1.609344 *
+              _priceSpecification.price // 1 SMI = 1.609344 KMT
+            );
+          } else {
+            return (
+              Math.abs(
+                Math.abs(
+                  _ligoAgreementState.endOdometer.value -
+                    _ligoAgreementState.startOdometer.value
+                ) - _priceSpecification.eligibleQuantity?.minValue
+              ) * _priceSpecification.price
+            );
+          }
         }
       }
       {
-        return (
-          Math.abs(
-            _ligoAgreementState.endOdometer.value -
-              _ligoAgreementState.startOdometer.value
-          ) * _priceSpecification.price
-        );
+        if (_priceSpecification.referenceQuantity?.unitCode == "SMI") {
+          return (
+            Math.abs(
+              _ligoAgreementState.endOdometer.value -
+                _ligoAgreementState.startOdometer.value
+            ) *
+            1.609344 * // 1 SMI = 1.609344 KMT
+            _priceSpecification.price
+          );
+        } else {
+          return (
+            Math.abs(
+              _ligoAgreementState.endOdometer.value -
+                _ligoAgreementState.startOdometer.value
+            ) * _priceSpecification.price
+          );
+        }
       }
     } else return 0;
   }

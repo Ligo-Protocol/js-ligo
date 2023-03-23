@@ -269,7 +269,7 @@ describe("prices", () => {
       );
       console.log("case 2.2", totalPrice);
       expect(totalPrice).toBeDefined();
-      expect(totalPrice === 250).toBe(true);
+      expect(totalPrice === 402.336).toBe(true);
     }, 30000);
   });
 
